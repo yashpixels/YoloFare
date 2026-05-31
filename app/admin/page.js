@@ -73,30 +73,49 @@ const EMPTY_FORM = {
 }
 
 export default function AdminPage() {
-  const [authed,setAuthed]             = useState(false)
-  const [password,setPassword]         = useState('')
-  const [pwError,setPwError]           = useState('')
-  const [deals,setDeals]               = useState([])
-  const [loading,setLoading]           = useState(false)
-  const [form,setForm]                 = useState(EMPTY_FORM)
-  const [saving,setSaving]             = useState(false)
-  const [message,setMessage]           = useState('')
-  const [tab,setTab]                   = useState('add')
-  const [editId,setEditId]             = useState(null)
-  const [flightUrl,setFlightUrl]       = useState('')
-  const [autoFilled,setAutoFilled]     = useState([])
-  const [parseMsg,setParseMsg]         = useState('')
-  // Alert state — track per-deal loading + results
-  const [sendingDealId,setSendingDealId]   = useState(null)  // which deal is currently sending
-  const [alertResults,setAlertResults]     = useState({})    // { dealId: result }
-  const [bulkLoading,setBulkLoading]       = useState(false)
-  const [bulkResult,setBulkResult]         = useState(null)
+  const [authed,setAuthed]               = useState(false)
+  const [password,setPassword]           = useState('')
+  const [pwError,setPwError]             = useState('')
+  const [deals,setDeals]                 = useState([])
+  const [loading,setLoading]             = useState(false)
+  const [form,setForm]                   = useState(EMPTY_FORM)
+  const [saving,setSaving]               = useState(false)
+  const [message,setMessage]             = useState('')
+  const [tab,setTab]                     = useState('add')
+  const [editId,setEditId]               = useState(null)
+  const [flightUrl,setFlightUrl]         = useState('')
+  const [autoFilled,setAutoFilled]       = useState([])
+  const [parseMsg,setParseMsg]           = useState('')
+  const [sendingDealId,setSendingDealId] = useState(null)
+  const [alertResults,setAlertResults]   = useState({})
+  const [subscribers,setSubscribers]     = useState([])
+  const [subsLoading,setSubsLoading]     = useState(false)
+  const [destFilter,setDestFilter]       = useState('')
 
   useEffect(()=>{const saved=localStorage.getItem('yf_admin_auth');if(saved==='true')setAuthed(true)},[])
   useEffect(()=>{if(authed)fetchDeals()},[authed])
 
   function handleLogin(e){e.preventDefault();if(password===ADMIN_PASSWORD){setAuthed(true);localStorage.setItem('yf_admin_auth','true')}else setPwError('Wrong password')}
   async function fetchDeals(){setLoading(true);const{data}=await supabase.from('deals').select('*').order('created_at',{ascending:false});if(data)setDeals(data);setLoading(false)}
+
+  async function fetchSubscribers() {
+    setSubsLoading(true)
+    const { data: subs } = await supabase.from('subscriptions').select('user_id,status,created_at').eq('status','active')
+    if (!subs?.length) { setSubscribers([]); setSubsLoading(false); return }
+    const userIds = subs.map(s => s.user_id)
+    const { data: prefs } = await supabase.from('user_preferences').select('*').in('user_id', userIds)
+    const prefsMap = {}
+    if (prefs) prefs.forEach(p => { prefsMap[p.user_id] = p })
+    try {
+      const { data: { users } } = await supabase.auth.admin.listUsers()
+      const enriched = subs.map(s => ({ ...s, email: users?.find(u => u.id === s.user_id)?.email || '—', prefs: prefsMap[s.user_id] || null }))
+      setSubscribers(enriched)
+    } catch(e) {
+      const enriched = subs.map(s => ({ ...s, email: '—', prefs: prefsMap[s.user_id] || null }))
+      setSubscribers(enriched)
+    }
+    setSubsLoading(false)
+  }
 
   function handleFlightUrlChange(e){
     const url=e.target.value;setFlightUrl(url);setParseMsg('');setAutoFilled([])
@@ -143,16 +162,11 @@ export default function AdminPage() {
     setFlightUrl(deal.booking_url||'');setAutoFilled([]);setParseMsg('');setEditId(deal.id);setTab('add');window.scrollTo(0,0)
   }
 
-  // ── Send alert for ONE specific deal ──
   async function sendDealAlert(deal) {
-    if (!confirm(`Send alert for this deal to all Pro subscribers?\n\n${deal.origin_code} → ${deal.dest_code} · ${deal.destination}\n₹${deal.deal_price?.toLocaleString('en-IN')} · ${deal.savings_pct}% off`)) return
+    if (!confirm(`Send alert for this deal to all matching Pro subscribers?\n\n${deal.origin_code} → ${deal.dest_code} · ${deal.destination}\n₹${deal.deal_price?.toLocaleString('en-IN')} · ${deal.savings_pct}% off`)) return
     setSendingDealId(deal.id)
     try {
-      const res = await fetch('/api/send-alerts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: 'yolofare-cron-2026', dealId: deal.id })
-      })
+      const res = await fetch('/api/send-alerts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ secret: 'yolofare-cron-2026', dealId: deal.id }) })
       const data = await res.json()
       setAlertResults(prev => ({ ...prev, [deal.id]: { ...data, sentAt: new Date().toLocaleTimeString() } }))
     } catch (err) {
@@ -169,7 +183,7 @@ export default function AdminPage() {
     page:{minHeight:'100vh',background:'#0D0A08',color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",padding:'0 0 80px'},
     nav:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 40px',height:60,background:'rgba(255,255,255,0.05)',borderBottom:'0.5px solid rgba(255,255,255,0.1)'},
     logo:{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,color:'#FFF5EC',textDecoration:'none'},
-    wrap:{maxWidth:900,margin:'0 auto',padding:'40px 24px'},
+    wrap:{maxWidth:920,margin:'0 auto',padding:'40px 24px'},
     label:{display:'block',fontSize:11,color:'rgba(255,245,236,0.4)',letterSpacing:1.5,textTransform:'uppercase',marginBottom:8},
     input:{width:'100%',padding:'12px 14px',background:'rgba(255,255,255,0.06)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:'none',marginBottom:16,boxSizing:'border-box'},
     inputAuto:{width:'100%',padding:'12px 14px',background:'rgba(76,175,80,0.07)',border:'0.5px solid rgba(76,175,80,0.35)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:'none',marginBottom:16,boxSizing:'border-box'},
@@ -179,7 +193,7 @@ export default function AdminPage() {
     card:{background:'rgba(255,255,255,0.05)',borderRadius:16,padding:'16px 20px',marginBottom:12},
     grid2:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 20px'},
     grid3:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0 20px'},
-    tab:(active)=>({padding:'10px 24px',borderRadius:100,fontSize:13,cursor:'pointer',border:'none',fontFamily:"'DM Sans',sans-serif",background:active?'#FF5C3A':'rgba(255,255,255,0.07)',color:active?'white':'rgba(255,245,236,0.55)'}),
+    tab:(active)=>({padding:'10px 20px',borderRadius:100,fontSize:13,cursor:'pointer',border:'none',fontFamily:"'DM Sans',sans-serif",background:active?'#FF5C3A':'rgba(255,255,255,0.07)',color:active?'white':'rgba(255,245,236,0.55)'}),
   }
 
   if(!authed)return(
@@ -224,6 +238,7 @@ export default function AdminPage() {
         <div style={{display:'flex',gap:8,marginBottom:28,flexWrap:'wrap'}}>
           <button style={s.tab(tab==='add')} onClick={()=>{setTab('add');setEditId(null);setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('')}}>{editId?'✏️ Edit deal':'➕ Add deal'}</button>
           <button style={s.tab(tab==='manage')} onClick={()=>setTab('manage')}>📋 Manage deals ({deals.filter(d=>d.is_active).length} active)</button>
+          <button style={s.tab(tab==='subscribers')} onClick={()=>{setTab('subscribers');fetchSubscribers()}}>👥 Subscribers</button>
         </div>
 
         {message&&(
@@ -292,7 +307,6 @@ export default function AdminPage() {
               <div><span style={{fontSize:14,fontWeight:600}}>🆓 Free Preview: </span><span style={{fontSize:14,color:freeCount>=3?'#FF8060':'#4CAF50',fontWeight:700}}>{freeCount}/3 used</span></div>
               <span style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Click 📬 to send an alert for any deal</span>
             </div>
-
             {loading?<div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>Loading...</div>
             :deals.length===0?<div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>No deals yet.</div>
             :deals.map(deal=>(
@@ -303,7 +317,7 @@ export default function AdminPage() {
                     <div style={{flex:1,minWidth:160}}>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2,flexWrap:'wrap'}}>
                         <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>{deal.origin_code} → {deal.dest_code} · {deal.destination}</span>
-                        {deal.is_free_preview&&<span style={{fontSize:10,fontWeight:700,background:'rgba(76,175,80,0.2)',color:'#4CAF50',border:'0.5px solid rgba(76,175,80,0.4)',padding:'2px 8px',borderRadius:100}}>FREE PREVIEW</span>}
+                        {deal.is_free_preview&&<span style={{fontSize:10,fontWeight:700,background:'rgba(76,175,80,0.2)',color:'#4CAF50',border:'0.5px solid rgba(76,175,80,0.4)',padding:'2px 8px',borderRadius:100}}>FREE</span>}
                       </div>
                       <div style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>{deal.airline} · {deal.cabin_class} · {deal.stops===0?'Non-stop':'1 stop'} · {deal.travel_dates}</div>
                     </div>
@@ -312,16 +326,9 @@ export default function AdminPage() {
                       <div style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>{deal.savings_pct}% off</div>
                     </div>
                     <div style={{display:'flex',gap:8,flexShrink:0,flexWrap:'wrap'}}>
-
-                      {/* ── SEND ALERT BUTTON ── */}
-                      <button
-                        onClick={()=>sendDealAlert(deal)}
-                        disabled={sendingDealId===deal.id}
-                        title="Send alert for this deal to all Pro subscribers"
-                        style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:sendingDealId===deal.id?'not-allowed':'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,background:'rgba(255,92,58,0.15)',color:'#FF8060',opacity:sendingDealId===deal.id?0.6:1}}>
-                        {sendingDealId===deal.id?'⏳':'📬'} {sendingDealId===deal.id?'Sending...':'Send alert'}
+                      <button onClick={()=>sendDealAlert(deal)} disabled={sendingDealId===deal.id} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:sendingDealId===deal.id?'not-allowed':'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,background:'rgba(255,92,58,0.15)',color:'#FF8060',opacity:sendingDealId===deal.id?0.6:1}}>
+                        {sendingDealId===deal.id?'⏳ Sending...':'📬 Send alert'}
                       </button>
-
                       <button onClick={()=>toggleFreePreview(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,background:deal.is_free_preview?'rgba(76,175,80,0.2)':'rgba(255,255,255,0.07)',color:deal.is_free_preview?'#4CAF50':'rgba(255,245,236,0.4)',boxShadow:deal.is_free_preview?'0 0 0 1px rgba(76,175,80,0.4)':'none'}}>
                         {deal.is_free_preview?'🟢 FREE':'🔒 PRO'}
                       </button>
@@ -331,22 +338,93 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* ── Alert result for this deal ── */}
                 {alertResults[deal.id]&&(
                   <div style={{marginBottom:12,marginTop:-8,background:alertResults[deal.id].error?'rgba(255,80,60,0.08)':'rgba(76,175,80,0.08)',border:`0.5px solid ${alertResults[deal.id].error?'rgba(255,80,60,0.25)':'rgba(76,175,80,0.25)'}`,borderRadius:'0 0 12px 12px',padding:'12px 20px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
                     {alertResults[deal.id].error?(
                       <span style={{fontSize:13,color:'#FF8060'}}>❌ {alertResults[deal.id].error}</span>
                     ):(
                       <>
-                        <span style={{fontSize:13,color:'#4CAF50',fontWeight:600}}>✅ Alert sent at {alertResults[deal.id].sentAt}</span>
-                        <span style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>📧 {alertResults[deal.id].emailsSent} emails · 💬 {alertResults[deal.id].whatsappSent} WhatsApp · 👥 {alertResults[deal.id].totalSubscribers} subscribers</span>
+                        <span style={{fontSize:13,color:'#4CAF50',fontWeight:600}}>✅ Sent at {alertResults[deal.id].sentAt}</span>
+                        <span style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>📧 {alertResults[deal.id].emailsSent} emails · 💬 {alertResults[deal.id].whatsappSent} WhatsApp · {alertResults[deal.id].matchedSubscribers}/{alertResults[deal.id].totalSubscribers} subscribers matched</span>
                       </>
                     )}
                   </div>
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── SUBSCRIBERS TAB ── */}
+        {tab==='subscribers'&&(
+          <div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:16,fontWeight:700}}>Pro subscribers</div>
+              <input value={destFilter} onChange={e=>setDestFilter(e.target.value)} placeholder="🔍 Filter by destination (e.g. SIN, BKK, Tokyo)" style={{padding:'10px 16px',background:'rgba(255,255,255,0.06)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:100,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:'none',width:300}}/>
+            </div>
+
+            {subsLoading?(
+              <div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>Loading subscribers...</div>
+            ):subscribers.length===0?(
+              <div style={{textAlign:'center',padding:60,color:'rgba(255,245,236,0.3)'}}>
+                <div style={{fontSize:40,marginBottom:12}}>👥</div>
+                <div>No active Pro subscribers yet.</div>
+              </div>
+            ):(()=>{
+              const filtered = destFilter
+                ? subscribers.filter(s => {
+                    const dests = s.prefs?.preferred_destinations || []
+                    const other = s.prefs?.other_destination || ''
+                    const q = destFilter.toLowerCase()
+                    return dests.length === 0 || // no prefs = wants all
+                           dests.some(d => d.toLowerCase().includes(q)) ||
+                           other.toLowerCase().includes(q)
+                  })
+                : subscribers
+              return (
+                <>
+                  <div style={{fontSize:13,color:'rgba(255,245,236,0.4)',marginBottom:16}}>
+                    Showing <strong style={{color:'#FFF5EC'}}>{filtered.length}</strong> of {subscribers.length} subscriber{subscribers.length!==1?'s':''}
+                    {destFilter && <span style={{color:'#FF8060'}}> · interested in "{destFilter.toUpperCase()}"</span>}
+                  </div>
+                  {filtered.map(sub=>(
+                    <div key={sub.user_id} style={{background:'rgba(255,255,255,0.04)',border:'0.5px solid rgba(255,255,255,0.08)',borderRadius:16,padding:'16px 20px',marginBottom:10}}>
+                      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+                        <div style={{flex:1,minWidth:200}}>
+                          <div style={{fontSize:14,fontWeight:600,marginBottom:8,color:'#FFF5EC'}}>{sub.email}</div>
+                          <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                            {(sub.prefs?.preferred_destinations||[]).length>0?(
+                              sub.prefs.preferred_destinations.map(d=>(
+                                <span key={d} style={{fontSize:11,padding:'3px 10px',background:'rgba(255,92,58,0.1)',border:'0.5px solid rgba(255,92,58,0.2)',borderRadius:100,color:'#FF8060'}}>✈️ {d}</span>
+                              ))
+                            ):(
+                              <span style={{fontSize:11,padding:'3px 10px',background:'rgba(255,255,255,0.05)',borderRadius:100,color:'rgba(255,245,236,0.3)'}}>All destinations</span>
+                            )}
+                            {sub.prefs?.other_destination&&(
+                              <span style={{fontSize:11,padding:'3px 10px',background:'rgba(255,92,58,0.1)',border:'0.5px solid rgba(255,92,58,0.2)',borderRadius:100,color:'#FF8060'}}>📍 {sub.prefs.other_destination}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+                          <span style={{fontSize:11,padding:'4px 12px',background:'rgba(255,215,0,0.1)',border:'0.5px solid rgba(255,215,0,0.2)',borderRadius:100,color:'#FFD700'}}>
+                            💺 {sub.prefs?.preferred_class||'All Classes'}
+                          </span>
+                          {(sub.prefs?.preferred_origins||[]).map(o=>(
+                            <span key={o} style={{fontSize:11,padding:'4px 12px',background:'rgba(255,255,255,0.06)',borderRadius:100,color:'rgba(255,245,236,0.5)'}}>🛫 {o}</span>
+                          ))}
+                          {sub.prefs?.whatsapp_opted_in&&(
+                            <span style={{fontSize:11,padding:'4px 12px',background:'rgba(37,211,102,0.1)',border:'0.5px solid rgba(37,211,102,0.3)',borderRadius:100,color:'#25D366'}}>💬 WhatsApp</span>
+                          )}
+                          {!sub.prefs&&(
+                            <span style={{fontSize:11,padding:'4px 12px',background:'rgba(255,255,255,0.04)',borderRadius:100,color:'rgba(255,245,236,0.3)'}}>No preferences set</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )
+            })()}
           </div>
         )}
       </div>
