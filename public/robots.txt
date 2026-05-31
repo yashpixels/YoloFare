@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /preferences
+
+Sitemap: https://www.yolofare.com/sitemap.xml
