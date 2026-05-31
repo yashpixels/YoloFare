@@ -19,12 +19,12 @@ export default function PricingPage() {
   const router    = useRouter()
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(false)
-  const [status, setStatus]   = useState('')  // shows feedback to user
+  const [status, setStatus]   = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
-    loadRazorpay() // preload
+    loadRazorpay()
     return () => subscription.unsubscribe()
   }, [])
 
@@ -37,7 +37,6 @@ export default function PricingPage() {
       const loaded = await loadRazorpay()
       if (!loaded) throw new Error('Razorpay failed to load.')
 
-      // Create order
       setStatus('Creating order...')
       const res = await fetch('/api/razorpay-order', {
         method: 'POST',
@@ -60,7 +59,6 @@ export default function PricingPage() {
         theme:       { color: '#FF5C3A' },
 
         handler: async function (response) {
-          // Razorpay calls this on successful payment
           setStatus('Verifying payment...')
           try {
             const verifyRes = await fetch('/api/verify-payment', {
@@ -76,7 +74,6 @@ export default function PricingPage() {
             const data = await verifyRes.json()
             if (data.success) {
               setStatus('Payment confirmed! Redirecting...')
-              // Use hard redirect — more reliable than router.push inside Razorpay callback
               window.location.href = '/preferences?new=true'
             } else {
               throw new Error(data.error || 'Verification failed')
@@ -108,6 +105,22 @@ export default function PricingPage() {
     }
   }
 
+  const freeFeats = [
+    { icon: '·', text: '3 deals visible (teaser only)' },
+    { icon: '·', text: 'South East Asia only' },
+    { icon: '·', text: 'Economy class only' },
+    { icon: '·', text: 'No deal alerts' },
+    { icon: '·', text: 'No preferences profile' },
+  ]
+
+  const proFeats = [
+    { text: 'All deals unlocked — every region, every class' },
+    { text: 'Instant alerts via email + WhatsApp', tag: 'NEW' },
+    { text: 'Personalised to your wishlist & home city' },
+    { text: 'Error fares & flash deals first (before they vanish)' },
+    { text: 'Business & First Class deals included' },
+  ]
+
   return (
     <div style={{ minHeight: '100vh', background: '#0D0A08', color: '#FFF5EC', fontFamily: "'DM Sans', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
@@ -138,22 +151,29 @@ export default function PricingPage() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-          {/* Free */}
+
+          {/* FREE */}
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: 28 }}>
             <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Free</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, marginBottom: 4 }}>₹0</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Forever free</div>
-            {['3 deals visible', 'South East Asia only', 'Economy class'].map(f => (
-              <div key={f} style={{ fontSize: 14, color: 'rgba(255,245,236,0.45)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ color: 'rgba(255,245,236,0.2)', fontSize: 18 }}>·</span>{f}
+            <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Forever free · No card needed</div>
+
+            {freeFeats.map(f => (
+              <div key={f.text} style={{ fontSize: 14, color: 'rgba(255,245,236,0.38)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ color: 'rgba(255,245,236,0.18)', fontSize: 18, lineHeight: 1.2, flexShrink: 0 }}>·</span>
+                {f.text}
               </div>
             ))}
+
             <Link href="/deals" style={{ display: 'block', textAlign: 'center', marginTop: 28, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,245,236,0.6)', padding: '13px', borderRadius: 100, fontSize: 14, textDecoration: 'none', border: '0.5px solid rgba(255,255,255,0.1)' }}>
               Browse free deals
             </Link>
+            <div style={{ textAlign: 'center', fontSize: 11, color: 'rgba(255,92,58,0.5)', marginTop: 10 }}>
+              Deals expire fast — free users often miss out
+            </div>
           </div>
 
-          {/* Pro */}
+          {/* PRO */}
           <div style={{ background: 'rgba(255,92,58,0.08)', border: '1px solid rgba(255,92,58,0.35)', borderRadius: 24, padding: 28, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, right: 0, background: '#FF5C3A', color: 'white', fontSize: 10, fontWeight: 700, padding: '6px 16px', borderRadius: '0 24px 0 12px', letterSpacing: 0.5 }}>MOST POPULAR</div>
             <div style={{ fontSize: 11, color: 'rgba(255,92,58,0.8)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Pro</div>
@@ -162,16 +182,25 @@ export default function PricingPage() {
               <span style={{ fontSize: 14, color: 'rgba(255,245,236,0.4)' }}>/month</span>
             </div>
             <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Cancel anytime · No hidden fees</div>
-            {['All deals unlocked', 'All regions & all classes', 'WhatsApp deal alerts', 'Set your destination wishlist', 'Cancel anytime'].map(f => (
-              <div key={f} style={{ fontSize: 14, color: 'rgba(255,245,236,0.8)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ color: '#4CAF50', fontWeight: 700 }}>✓</span>{f}
+
+            {proFeats.map(f => (
+              <div key={f.text} style={{ fontSize: 14, color: 'rgba(255,245,236,0.85)', marginBottom: 11, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ color: '#FF5C3A', fontWeight: 700, flexShrink: 0, lineHeight: 1.4 }}>✓</span>
+                <span>
+                  {f.text}
+                  {f.tag && (
+                    <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, marginLeft: 6, background: 'rgba(255,92,58,0.18)', color: '#FF5C3A', letterSpacing: 0.5, verticalAlign: 'middle' }}>
+                      {f.tag}
+                    </span>
+                  )}
+                </span>
               </div>
             ))}
 
             <button
               onClick={handleUpgrade}
               disabled={loading}
-              style={{ width: '100%', marginTop: 28, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}>
+              style={{ width: '100%', marginTop: 24, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}>
               {loading ? `⏳ ${status || 'Loading...'}` : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
             </button>
 
