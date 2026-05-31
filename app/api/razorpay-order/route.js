@@ -8,7 +8,11 @@ export async function POST(request) {
     const keyId     = process.env.NEXT_PUBLIC_RAZORPAY_KEY
     const keySecret = process.env.RAZORPAY_KEY_SECRET
 
-    // Create order via Razorpay REST API — ₹1 = 100 paise for testing
+    // Receipt max 40 chars — use short hash of userId + base36 timestamp
+    const shortId = userId.slice(-8)
+    const ts      = Date.now().toString(36)
+    const receipt = `yf_${shortId}_${ts}` // ~22 chars, well under 40
+
     const response = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
       headers: {
@@ -16,9 +20,9 @@ export async function POST(request) {
         'Authorization': 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64'),
       },
       body: JSON.stringify({
-        amount: 100,           // ₹1 in paise — change to 99900 for ₹999 in production
+        amount:   100,        // ₹1 in paise for testing (change to 99900 for ₹999 in production)
         currency: 'INR',
-        receipt: `yolofare_${userId}_${Date.now()}`,
+        receipt,
         notes: { userId, plan: 'pro' },
       }),
     })
