@@ -8,23 +8,40 @@ const CITIES = ['All Cities', 'DEL', 'BOM', 'BLR', 'HYD', 'MAA']
 const CLASSES = ['All Classes', 'Economy', 'Business', 'First']
 
 export default function DealsPage() {
-  const [deals, setDeals] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [region, setRegion] = useState('All')
-  const [city, setCity] = useState('All Cities')
+  const [deals, setDeals]         = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [region, setRegion]       = useState('All')
+  const [city, setCity]           = useState('All Cities')
   const [cabinClass, setCabinClass] = useState('All Classes')
-  const [user, setUser] = useState(null)
+  const [user, setUser]           = useState(null)
+  const [isPro, setIsPro]         = useState(false)  // ← actual subscription check
 
   useEffect(() => {
     fetchDeals()
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) checkProStatus(u.id)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) checkProStatus(u.id)
+      else setIsPro(false)
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  // ── Check if user has an active Pro subscription ──
+  async function checkProStatus(userId) {
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle()
+    setIsPro(!!data)
+  }
 
   async function fetchDeals() {
     const { data } = await supabase
@@ -39,9 +56,9 @@ export default function DealsPage() {
   async function handleSignOut() {
     await supabase.auth.signOut()
     setUser(null)
+    setIsPro(false)
   }
 
-  // ── Apply filters ──
   const filtered = deals.filter(d => {
     if (region !== 'All' && d.region !== region) return false
     if (city !== 'All Cities' && d.origin_code !== city) return false
@@ -49,12 +66,9 @@ export default function DealsPage() {
     return true
   })
 
-  // ── For free users: only show is_free_preview deals ──
-  // ── For pro users (logged in): show all ──
-  const isPro = !!user // TODO: replace with actual pro check when Razorpay is wired
   const visibleDeals = isPro ? filtered : filtered.filter(d => d.is_free_preview)
-  const totalDeals = deals.length
-  const freeDeals = deals.filter(d => d.is_free_preview)
+  const totalDeals   = deals.length
+  const freeDeals    = deals.filter(d => d.is_free_preview)
 
   return (
     <div style={{ minHeight: '100vh', background: '#0D0A08', color: '#FFF5EC', fontFamily: "'DM Sans', sans-serif" }}>
@@ -69,7 +83,6 @@ export default function DealsPage() {
         .banner-btns     { display: flex; gap: 10px; flex-shrink: 0; }
         .deal-card       { transition: transform 0.25s, border-color 0.25s; }
         .deal-card:hover { transform: translateY(-6px); border-color: rgba(255,92,58,0.4) !important; }
-
         @media (max-width: 768px) {
           .deals-nav       { padding: 0 16px; }
           .nav-user-email  { display: none; }
@@ -110,14 +123,22 @@ export default function DealsPage() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', minWidth: 0 }}>
           {user ? (
             <>
-              <span className="nav-user-email" style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>👋 {user.email}</span>
+              <span className="nav-user-email" style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
+                {isPro ? '⭐' : '👋'} {user.email}
+              </span>
               <button className="nav-signout" onClick={handleSignOut} style={{ fontSize: 13, color: 'rgba(255,245,236,0.4)', background: 'none', border: '0.5px solid rgba(255,255,255,0.12)', padding: '7px 16px', borderRadius: 100, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", whiteSpace: 'nowrap' }}>Sign out</button>
-              <Link className="nav-upgrade" href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '9px 18px', borderRadius: 100, fontSize: 13, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>Upgrade · ₹999/mo</Link>
+              {!isPro && (
+                <Link className="nav-upgrade" href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '9px 18px', borderRadius: 100, fontSize: 13, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>
+                  Upgrade · ₹999/mo
+                </Link>
+              )}
             </>
           ) : (
             <>
               <Link href="/login" style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', whiteSpace: 'nowrap' }} className="nav-signout">Login</Link>
-              <Link className="nav-upgrade" href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '9px 18px', borderRadius: 100, fontSize: 13, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>Upgrade · ₹999/mo</Link>
+              <Link className="nav-upgrade" href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '9px 18px', borderRadius: 100, fontSize: 13, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>
+                Upgrade · ₹999/mo
+              </Link>
             </>
           )}
         </div>
@@ -178,17 +199,30 @@ export default function DealsPage() {
           </div>
         )}
 
-        {/* Banner — logged in but not pro */}
-        {user && (
+        {/* Banner — logged in but NOT Pro */}
+        {user && !isPro && (
           <div style={{ background: 'rgba(255,92,58,0.08)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 16, padding: '16px 20px', marginBottom: 28 }}>
             <div className="banner-row">
               <div>
-                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>You're signed in 🎉 Upgrade to see all deals</div>
-                <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)' }}>YoloFare Pro unlocks all {totalDeals} deals · ₹999/mo</div>
+                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>You're signed in — upgrade to see all {totalDeals} deals</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)' }}>YoloFare Pro unlocks everything · ₹999/mo</div>
               </div>
               <div className="banner-btns">
                 <Link href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '10px 20px', borderRadius: 100, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", textDecoration: 'none', display: 'inline-block', textAlign: 'center', whiteSpace: 'nowrap' }}>Upgrade to Pro · ₹999/mo</Link>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner — Pro member */}
+        {user && isPro && (
+          <div style={{ background: 'rgba(76,175,80,0.06)', border: '0.5px solid rgba(76,175,80,0.2)', borderRadius: 16, padding: '14px 20px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 18 }}>⭐</span>
+            <div>
+              <span style={{ fontSize: 14, fontWeight: 500 }}>Pro member — all {totalDeals} deals unlocked</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.5)', marginLeft: 12 }}>
+                <Link href="/preferences" style={{ color: '#FF8060', textDecoration: 'none' }}>Update your preferences →</Link>
+              </span>
             </div>
           </div>
         )}
@@ -207,19 +241,14 @@ export default function DealsPage() {
             <div className="deals-grid">
               {visibleDeals.map((deal) => (
                 <div key={deal.id} className="deal-card" style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', border: '0.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', cursor: 'pointer' }}>
-                  {/* Image */}
                   <div style={{ height: 180, position: 'relative', overflow: 'hidden', background: '#1a1a2a' }}>
-                    {deal.image_url && (
-                      <img src={deal.image_url} alt={deal.destination} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.05)' }} />
-                    )}
+                    {deal.image_url && <img src={deal.image_url} alt={deal.destination} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.05)' }} />}
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(13,10,8,0.75) 100%)' }} />
                     <span style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(13,10,8,0.6)', color: 'rgba(255,245,236,0.9)', backdropFilter: 'blur(8px)', fontSize: 11, padding: '4px 10px', borderRadius: 100, border: '0.5px solid rgba(255,255,255,0.15)' }}>{deal.airline}</span>
                     <span style={{ position: 'absolute', top: 14, right: 14, background: '#FF5C3A', color: 'white', fontSize: 12, fontWeight: 600, padding: '5px 12px', borderRadius: 100 }}>{deal.savings_pct}% off</span>
                     <span style={{ position: 'absolute', bottom: 14, left: 14, fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 700, color: 'white', textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>{deal.destination}</span>
                     <span style={{ position: 'absolute', bottom: 14, right: 14, fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: deal.cabin_class === 'First' ? 'rgba(255,92,58,0.3)' : deal.cabin_class === 'Business' ? 'rgba(255,215,0,0.25)' : 'rgba(255,255,255,0.15)', color: deal.cabin_class === 'First' ? '#FFAA88' : deal.cabin_class === 'Business' ? '#FFD700' : 'rgba(255,255,255,0.9)', border: '0.5px solid rgba(255,255,255,0.2)' }}>{deal.cabin_class}</span>
                   </div>
-
-                  {/* Card body */}
                   <div style={{ padding: '14px 16px 16px' }}>
                     <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
                       {deal.origin_code} → {deal.dest_code} · {deal.travel_dates}
@@ -233,18 +262,16 @@ export default function DealsPage() {
                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: deal.stops === 0 ? '#4CAF50' : '#FF8060', display: 'inline-block' }} />
                         {deal.stops === 0 ? 'Non-stop' : `${deal.stops} stop`}
                       </span>
-                      <Link href={`/deals/${deal.id}`} style={{ fontSize: 13, fontWeight: 600, color: '#FF5C3A', textDecoration: 'none' }}>
-                        View deal →
-                      </Link>
+                      <Link href={`/deals/${deal.id}`} style={{ fontSize: 13, fontWeight: 600, color: '#FF5C3A', textDecoration: 'none' }}>View deal →</Link>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Upgrade nudge for free users — shown below the free deals */}
+            {/* Upgrade nudge for non-Pro */}
             {!isPro && (
-              <div style={{ marginTop: 40, background: 'linear-gradient(135deg, rgba(255,92,58,0.08) 0%, rgba(255,92,58,0.04) 100%)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 24, padding: '32px 32px', textAlign: 'center' }}>
+              <div style={{ marginTop: 40, background: 'linear-gradient(135deg, rgba(255,92,58,0.08) 0%, rgba(255,92,58,0.04) 100%)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 24, padding: '32px', textAlign: 'center' }}>
                 <div style={{ fontSize: 28, marginBottom: 12 }}>🔒</div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 8, letterSpacing: -0.5 }}>
                   {totalDeals - freeDeals.length} more deals locked
