@@ -4,14 +4,28 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 
+// Load Razorpay script dynamically
+function loadRazorpay() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) { resolve(true); return }
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.onload  = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.body.appendChild(script)
+  })
+}
+
 export default function PricingPage() {
-  const router  = useRouter()
-  const [user, setUser]     = useState(null)
+  const router    = useRouter()
+  const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
+    // Preload Razorpay script on mount
+    loadRazorpay()
     return () => subscription.unsubscribe()
   }, [])
 
@@ -19,8 +33,12 @@ export default function PricingPage() {
     if (!user) { router.push('/login?redirect=/pricing'); return }
     setLoading(true)
     try {
-      // 1. Create Razorpay order (₹1 for testing)
-      const res   = await fetch('/api/razorpay-order', {
+      // Ensure Razorpay is loaded
+      const loaded = await loadRazorpay()
+      if (!loaded) throw new Error('Razorpay failed to load. Check your connection.')
+
+      // 1. Create order (₹1 = 100 paise for testing)
+      const res = await fetch('/api/razorpay-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
@@ -36,12 +54,10 @@ export default function PricingPage() {
         name:        'YoloFare',
         description: 'YoloFare Pro — Monthly Subscription',
         order_id:    orderId,
-        prefill: {
-          email: user.email,
-        },
-        theme: { color: '#FF5C3A' },
+        prefill:     { email: user.email },
+        theme:       { color: '#FF5C3A' },
         handler: async function (response) {
-          // 3. Verify payment on server
+          // 3. Verify on server → save subscription
           const verifyRes = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -54,20 +70,17 @@ export default function PricingPage() {
           })
           const { success, error: verifyError } = await verifyRes.json()
           if (verifyError) throw new Error(verifyError)
-          if (success) {
-            // 4. Redirect to preferences onboarding
-            router.push('/preferences?new=true')
-          }
+          if (success) router.push('/preferences?new=true')
         },
-        modal: {
-          ondismiss: () => setLoading(false)
-        }
+        modal: { ondismiss: () => setLoading(false) }
       }
 
       const rzp = new window.Razorpay(options)
+      rzp.on('payment.failed', () => setLoading(false))
       rzp.open()
+
     } catch (err) {
-      alert('Payment failed: ' + err.message)
+      alert('Something went wrong: ' + err.message)
       setLoading(false)
     }
   }
@@ -75,8 +88,6 @@ export default function PricingPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0D0A08', color: '#FFF5EC', fontFamily: "'DM Sans', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-      {/* Load Razorpay script */}
-      <script src="https://checkout.razorpay.com/v1/checkout.js" async />
 
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, #FF5C3A 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.15, top: -150, right: -100 }} />
@@ -88,7 +99,7 @@ export default function PricingPage() {
           Yolo<span style={{ color: '#FF5C3A' }}>Fare</span>
         </Link>
         {user
-          ? <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.5)' }}>{user.email}</span>
+          ? <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200, whiteSpace: 'nowrap' }}>{user.email}</span>
           : <Link href="/login" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none' }}>Login</Link>
         }
       </nav>
@@ -138,8 +149,8 @@ export default function PricingPage() {
             <button
               onClick={handleUpgrade}
               disabled={loading}
-              style={{ width: '100%', marginTop: 28, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif', letterSpacing: -0.3" }}>
-              {loading ? 'Opening checkout...' : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
+              style={{ width: '100%', marginTop: 28, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}>
+              {loading ? '⏳ Opening checkout...' : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
             </button>
             <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,245,236,0.25)', marginTop: 10 }}>
               Secured by Razorpay · UPI, Cards, NetBanking
