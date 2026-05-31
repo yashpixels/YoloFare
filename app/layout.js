@@ -62,7 +62,7 @@ export const metadata = {
   },
   verification: {
     // Add your Google Search Console verification token here once you set it up:
-    // google: 'YOUR_GOOGLE_VERIFICATION_TOKEN',
+    google: '5NbhqF9DBg7zqw',,
   },
 }
 
