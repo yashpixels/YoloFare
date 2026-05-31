@@ -1,16 +1,33 @@
 'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
 
   const sampleDeals = [
     { from: 'DEL', dest: 'Singapore', flag: '🇸🇬', price: 14200, was: 38000, off: 63, airline: 'IndiGo', type: 'Economy', stops: 0 },
@@ -30,7 +47,6 @@ export default function Home() {
         .deal-card { transition: transform 0.25s, border-color 0.25s; }
         .nav-link:hover { color: #FFF5EC !important; }
 
-        /* ── Layout classes ── */
         .nav-desktop  { display: flex; gap: 32px; align-items: center; }
         .hamburger    { display: none; background: none; border: none; cursor: pointer; padding: 4px; color: #FFF5EC; line-height: 0; }
         .stats-grid   { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; max-width: 720px; width: 100%; }
@@ -44,7 +60,6 @@ export default function Home() {
         .cta-inner    { padding: 64px 56px; }
         .footer-row   { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 
-        /* ── Mobile ── */
         @media (max-width: 768px) {
           .nav-desktop { display: none; }
           .hamburger   { display: flex; }
@@ -73,27 +88,20 @@ export default function Home() {
           .hero-btns a { text-align: center; }
 
           .stats-grid  { grid-template-columns: repeat(2,1fr); max-width: 100%; }
-
           .deals-grid  { grid-template-columns: 1fr; }
           .deals-wrap  { padding: 0 16px; }
-
           .how-grid    { grid-template-columns: 1fr; gap: 14px; }
           .sec         { padding: 56px 20px; }
-
           .cities-grid { grid-template-columns: repeat(3,1fr); gap: 8px; }
-
           .pricing-grid { grid-template-columns: 1fr; }
-
           .roi-grid    { grid-template-columns: 1fr; }
           .roi-cell    { border-right: none !important; border-bottom: 0.5px solid rgba(255,255,255,0.08) !important; }
           .roi-cell:last-child { border-bottom: none !important; }
-
           .cta-inner   { padding: 36px 24px; }
           .footer-row  { flex-direction: column; align-items: flex-start; gap: 20px; }
           .footer-bar  { padding: 28px 20px !important; }
         }
 
-        /* ── Tablet ── */
         @media (min-width: 769px) and (max-width: 1024px) {
           .deals-grid  { grid-template-columns: repeat(2,1fr); }
           .sec         { padding: 72px 32px; }
@@ -119,13 +127,20 @@ export default function Home() {
           <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800, color: '#FFF5EC' }}>Yolo<span style={{ color: '#FF5C3A' }}>Fare</span></span>
         </Link>
 
-        {/* Desktop links */}
+        {/* Desktop nav */}
         <div className="nav-desktop">
           <a href="#how-it-works" className="nav-link" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', transition: 'color 0.2s' }}>How it works</a>
           <a href="#destinations" className="nav-link" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', transition: 'color 0.2s' }}>Destinations</a>
           <a href="#pricing" className="nav-link" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', transition: 'color 0.2s' }}>Pricing</a>
-          <Link href="/login" className="nav-link" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', transition: 'color 0.2s' }}>Login</Link>
-          <Link href="/deals" style={{ background: '#FF5C3A', color: 'white', padding: '9px 22px', borderRadius: 100, fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Browse deals →</Link>
+          {user ? (
+            <>
+              <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</span>
+              <button onClick={handleSignOut} style={{ fontSize: 13, color: 'rgba(255,245,236,0.4)', background: 'none', border: '0.5px solid rgba(255,255,255,0.15)', padding: '7px 16px', borderRadius: 100, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Sign out</button>
+            </>
+          ) : (
+            <Link href="/login" className="nav-link" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', transition: 'color 0.2s' }}>Login</Link>
+          )}
+          <Link href="/deals" style={{ background: '#FF5C3A', color: 'white', padding: '9px 22px', borderRadius: 100, fontSize: 13, fontWeight: 600, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif" }}>Browse deals →</Link>
         </div>
 
         {/* Hamburger */}
@@ -137,13 +152,17 @@ export default function Home() {
         </button>
       </nav>
 
-      {/* Mobile menu overlay */}
+      {/* Mobile menu */}
       {menuOpen && (
         <div className="mobile-menu">
           <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
           <a href="#destinations" onClick={() => setMenuOpen(false)}>Destinations</a>
           <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
-          <a href="/login" onClick={() => setMenuOpen(false)}>Login</a>
+          {user ? (
+            <a href="#" onClick={() => { handleSignOut(); setMenuOpen(false) }}>Sign out</a>
+          ) : (
+            <a href="/login" onClick={() => setMenuOpen(false)}>Login</a>
+          )}
           <a href="/deals" className="mobile-menu-btn" onClick={() => setMenuOpen(false)}>Browse deals →</a>
         </div>
       )}
@@ -301,7 +320,6 @@ export default function Home() {
           </div>
 
           <div className="pricing-grid">
-            {/* Free */}
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: 28 }}>
               <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Free</div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, marginBottom: 4 }}>₹0</div>
@@ -316,7 +334,6 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Pro */}
             <div style={{ background: 'rgba(255,92,58,0.08)', border: '1px solid rgba(255,92,58,0.3)', borderRadius: 24, padding: 28, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: 0, right: 0, background: '#FF5C3A', color: 'white', fontSize: 10, fontWeight: 700, padding: '6px 16px', borderRadius: '0 24px 0 12px', letterSpacing: 0.5 }}>MOST POPULAR</div>
               <div style={{ fontSize: 11, color: 'rgba(255,92,58,0.8)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Pro</div>
@@ -337,7 +354,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ROI strip */}
           <div className="roi-grid">
             {[['₹999','Monthly cost'],['₹18,000+','Avg. savings per trip'],['18x','ROI on first booking']].map(([val, label], i) => (
               <div key={label} className="roi-cell" style={{ padding: '20px', textAlign: 'center', borderRight: i < 2 ? '0.5px solid rgba(255,255,255,0.08)' : 'none' }}>
