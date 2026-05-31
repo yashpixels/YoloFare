@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
 
-// Load Razorpay script dynamically
 function loadRazorpay() {
   return new Promise((resolve) => {
     if (window.Razorpay) { resolve(true); return }
@@ -20,24 +19,26 @@ export default function PricingPage() {
   const router    = useRouter()
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(false)
+  const [status, setStatus]   = useState('')  // shows feedback to user
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
-    // Preload Razorpay script on mount
-    loadRazorpay()
+    loadRazorpay() // preload
     return () => subscription.unsubscribe()
   }, [])
 
   async function handleUpgrade() {
     if (!user) { router.push('/login?redirect=/pricing'); return }
     setLoading(true)
-    try {
-      // Ensure Razorpay is loaded
-      const loaded = await loadRazorpay()
-      if (!loaded) throw new Error('Razorpay failed to load. Check your connection.')
+    setStatus('Loading checkout...')
 
-      // 1. Create order (₹1 = 100 paise for testing)
+    try {
+      const loaded = await loadRazorpay()
+      if (!loaded) throw new Error('Razorpay failed to load.')
+
+      // Create order
+      setStatus('Creating order...')
       const res = await fetch('/api/razorpay-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,42 +47,64 @@ export default function PricingPage() {
       const { orderId, amount, error: orderError } = await res.json()
       if (orderError) throw new Error(orderError)
 
-      // 2. Open Razorpay checkout
+      setStatus('Opening checkout...')
+
       const options = {
         key:         process.env.NEXT_PUBLIC_RAZORPAY_KEY,
         amount,
         currency:    'INR',
         name:        'YoloFare',
-        description: 'YoloFare Pro — Monthly Subscription',
+        description: 'YoloFare Pro — Monthly',
         order_id:    orderId,
         prefill:     { email: user.email },
         theme:       { color: '#FF5C3A' },
+
         handler: async function (response) {
-          // 3. Verify on server → save subscription
-          const verifyRes = await fetch('/api/verify-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              razorpay_order_id:   response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature:  response.razorpay_signature,
-              userId:              user.id,
-            }),
-          })
-          const { success, error: verifyError } = await verifyRes.json()
-          if (verifyError) throw new Error(verifyError)
-          if (success) router.push('/preferences?new=true')
+          // Razorpay calls this on successful payment
+          setStatus('Verifying payment...')
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature:  response.razorpay_signature,
+                userId:              user.id,
+              }),
+            })
+            const data = await verifyRes.json()
+            if (data.success) {
+              setStatus('Payment confirmed! Redirecting...')
+              // Use hard redirect — more reliable than router.push inside Razorpay callback
+              window.location.href = '/preferences?new=true'
+            } else {
+              throw new Error(data.error || 'Verification failed')
+            }
+          } catch (err) {
+            setStatus('')
+            setLoading(false)
+            alert('Payment verification failed: ' + err.message)
+          }
         },
-        modal: { ondismiss: () => setLoading(false) }
+
+        modal: {
+          ondismiss: () => { setLoading(false); setStatus('') }
+        },
       }
 
       const rzp = new window.Razorpay(options)
-      rzp.on('payment.failed', () => setLoading(false))
+      rzp.on('payment.failed', (resp) => {
+        setLoading(false)
+        setStatus('')
+        alert('Payment failed: ' + resp.error.description)
+      })
       rzp.open()
 
     } catch (err) {
-      alert('Something went wrong: ' + err.message)
       setLoading(false)
+      setStatus('')
+      alert('Error: ' + err.message)
     }
   }
 
@@ -93,13 +116,12 @@ export default function PricingPage() {
         <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, #FF5C3A 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.15, top: -150, right: -100 }} />
       </div>
 
-      {/* Nav */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px', height: 64, background: 'rgba(13,10,8,0.9)', backdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}>
         <Link href="/" style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800, color: '#FFF5EC', textDecoration: 'none' }}>
           Yolo<span style={{ color: '#FF5C3A' }}>Fare</span>
         </Link>
         {user
-          ? <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200, whiteSpace: 'nowrap' }}>{user.email}</span>
+          ? <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.5)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</span>
           : <Link href="/login" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none' }}>Login</Link>
         }
       </nav>
@@ -115,7 +137,6 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Plan cards */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
           {/* Free */}
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: 28 }}>
@@ -146,21 +167,22 @@ export default function PricingPage() {
                 <span style={{ color: '#4CAF50', fontWeight: 700 }}>✓</span>{f}
               </div>
             ))}
+
             <button
               onClick={handleUpgrade}
               disabled={loading}
               style={{ width: '100%', marginTop: 28, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}>
-              {loading ? '⏳ Opening checkout...' : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
+              {loading ? `⏳ ${status || 'Loading...'}` : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
             </button>
+
             <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,245,236,0.25)', marginTop: 10 }}>
               Secured by Razorpay · UPI, Cards, NetBanking
             </div>
           </div>
         </div>
 
-        {/* ROI strip */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 18, overflow: 'hidden' }}>
-          {[['₹999', 'Monthly cost'], ['₹18,000+', 'Avg. savings per trip'], ['18x', 'ROI on first booking']].map(([val, label], i) => (
+          {[['₹999','Monthly cost'],['₹18,000+','Avg. savings per trip'],['18x','ROI on first booking']].map(([val,label],i) => (
             <div key={label} style={{ padding: '20px', textAlign: 'center', borderRight: i < 2 ? '0.5px solid rgba(255,255,255,0.08)' : 'none' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 700, color: '#FF5C3A' }}>{val}</div>
               <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.35)', marginTop: 4 }}>{label}</div>
