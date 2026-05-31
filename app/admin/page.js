@@ -17,17 +17,16 @@ const AIRPORT_MAP = {
   NRT:{city:'Tokyo',country:'JP',region:'South East Asia'},HND:{city:'Tokyo',country:'JP',region:'South East Asia'},
   KIX:{city:'Osaka',country:'JP',region:'South East Asia'},TPE:{city:'Taipei',country:'TW',region:'South East Asia'},
   CGK:{city:'Jakarta',country:'ID',region:'South East Asia'},
-  LHR:{city:'London',country:'GB',region:'Europe'},LGW:{city:'London',country:'GB',region:'Europe'},
-  CDG:{city:'Paris',country:'FR',region:'Europe'},AMS:{city:'Amsterdam',country:'NL',region:'Europe'},
-  FRA:{city:'Frankfurt',country:'DE',region:'Europe'},MUC:{city:'Munich',country:'DE',region:'Europe'},
-  ZRH:{city:'Zurich',country:'CH',region:'Europe'},FCO:{city:'Rome',country:'IT',region:'Europe'},
-  BCN:{city:'Barcelona',country:'ES',region:'Europe'},MAD:{city:'Madrid',country:'ES',region:'Europe'},
-  VIE:{city:'Vienna',country:'AT',region:'Europe'},IST:{city:'Istanbul',country:'TR',region:'Europe'},
+  LHR:{city:'London',country:'GB',region:'Europe'},CDG:{city:'Paris',country:'FR',region:'Europe'},
+  AMS:{city:'Amsterdam',country:'NL',region:'Europe'},FRA:{city:'Frankfurt',country:'DE',region:'Europe'},
+  MUC:{city:'Munich',country:'DE',region:'Europe'},ZRH:{city:'Zurich',country:'CH',region:'Europe'},
+  FCO:{city:'Rome',country:'IT',region:'Europe'},BCN:{city:'Barcelona',country:'ES',region:'Europe'},
+  MAD:{city:'Madrid',country:'ES',region:'Europe'},VIE:{city:'Vienna',country:'AT',region:'Europe'},
+  IST:{city:'Istanbul',country:'TR',region:'Europe'},
   DXB:{city:'Dubai',country:'AE',region:'Middle East'},AUH:{city:'Abu Dhabi',country:'AE',region:'Middle East'},
   DOH:{city:'Doha',country:'QA',region:'Middle East'},MCT:{city:'Muscat',country:'OM',region:'Middle East'},
-  RUH:{city:'Riyadh',country:'SA',region:'Middle East'},
   JFK:{city:'New York',country:'US',region:'USA'},LAX:{city:'Los Angeles',country:'US',region:'USA'},
-  SFO:{city:'San Francisco',country:'US',region:'USA'},ORD:{city:'Chicago',country:'US',region:'USA'},
+  SFO:{city:'San Francisco',country:'US',region:'USA'},
   YYZ:{city:'Toronto',country:'CA',region:'Canada'},YVR:{city:'Vancouver',country:'CA',region:'Canada'},
   SYD:{city:'Sydney',country:'AU',region:'Australia'},MEL:{city:'Melbourne',country:'AU',region:'Australia'},
   AKL:{city:'Auckland',country:'NZ',region:'Oceania'},
@@ -74,42 +73,44 @@ const EMPTY_FORM = {
 }
 
 export default function AdminPage() {
-  const [authed,setAuthed]           = useState(false)
-  const [password,setPassword]       = useState('')
-  const [pwError,setPwError]         = useState('')
-  const [deals,setDeals]             = useState([])
-  const [loading,setLoading]         = useState(false)
-  const [form,setForm]               = useState(EMPTY_FORM)
-  const [saving,setSaving]           = useState(false)
-  const [message,setMessage]         = useState('')
-  const [tab,setTab]                 = useState('add')
-  const [editId,setEditId]           = useState(null)
-  const [flightUrl,setFlightUrl]     = useState('')
-  const [autoFilled,setAutoFilled]   = useState([])
-  const [parseMsg,setParseMsg]       = useState('')
-  const [alertLoading,setAlertLoading] = useState(false)
-  const [alertResult,setAlertResult]   = useState(null)
+  const [authed,setAuthed]             = useState(false)
+  const [password,setPassword]         = useState('')
+  const [pwError,setPwError]           = useState('')
+  const [deals,setDeals]               = useState([])
+  const [loading,setLoading]           = useState(false)
+  const [form,setForm]                 = useState(EMPTY_FORM)
+  const [saving,setSaving]             = useState(false)
+  const [message,setMessage]           = useState('')
+  const [tab,setTab]                   = useState('add')
+  const [editId,setEditId]             = useState(null)
+  const [flightUrl,setFlightUrl]       = useState('')
+  const [autoFilled,setAutoFilled]     = useState([])
+  const [parseMsg,setParseMsg]         = useState('')
+  // Alert state — track per-deal loading + results
+  const [sendingDealId,setSendingDealId]   = useState(null)  // which deal is currently sending
+  const [alertResults,setAlertResults]     = useState({})    // { dealId: result }
+  const [bulkLoading,setBulkLoading]       = useState(false)
+  const [bulkResult,setBulkResult]         = useState(null)
 
   useEffect(()=>{const saved=localStorage.getItem('yf_admin_auth');if(saved==='true')setAuthed(true)},[])
   useEffect(()=>{if(authed)fetchDeals()},[authed])
 
   function handleLogin(e){e.preventDefault();if(password===ADMIN_PASSWORD){setAuthed(true);localStorage.setItem('yf_admin_auth','true')}else setPwError('Wrong password')}
-
   async function fetchDeals(){setLoading(true);const{data}=await supabase.from('deals').select('*').order('created_at',{ascending:false});if(data)setDeals(data);setLoading(false)}
 
   function handleFlightUrlChange(e){
     const url=e.target.value;setFlightUrl(url);setParseMsg('');setAutoFilled([])
     if(!url.includes('google.com/travel/flights'))return
     const parsed=parseGoogleFlightsUrl(url)
-    if(parsed.autoFilled.length===0){setParseMsg('⚠️ Could not extract details — fill fields manually.');setForm(f=>({...f,booking_url:url}));return}
+    if(parsed.autoFilled.length===0){setParseMsg('⚠️ Could not extract — fill manually.');setForm(f=>({...f,booking_url:url}));return}
     setForm(f=>({...f,booking_url:url,dest_code:parsed.dest_code||f.dest_code,destination:parsed.destination||f.destination,country:parsed.country||f.country,region:parsed.region||f.region,origin_code:parsed.origin_code||f.origin_code,origin_city:parsed.origin_city||f.origin_city,travel_dates:parsed.travel_dates||f.travel_dates}))
-    setAutoFilled(parsed.autoFilled);setParseMsg(`✅ Auto-filled ${parsed.autoFilled.length} fields from URL.`)
+    setAutoFilled(parsed.autoFilled);setParseMsg(`✅ Auto-filled ${parsed.autoFilled.length} fields.`)
   }
 
   function handleFormChange(e){
     const{name,value,type,checked}=e.target
     const updated={...form,[name]:type==='checkbox'?checked:value}
-    if(name==='deal_price'||name==='regular_price'){const deal=parseFloat(name==='deal_price'?value:form.deal_price);const regular=parseFloat(name==='regular_price'?value:form.regular_price);if(deal&&regular&&regular>deal)updated.savings_pct=Math.round(((regular-deal)/regular)*100).toString()}
+    if(name==='deal_price'||name==='regular_price'){const d=parseFloat(name==='deal_price'?value:form.deal_price);const r=parseFloat(name==='regular_price'?value:form.regular_price);if(d&&r&&r>d)updated.savings_pct=Math.round(((r-d)/r)*100).toString()}
     if(name==='origin_city')updated.origin_code=CITY_CODES[value]||''
     setForm(updated)
   }
@@ -121,7 +122,8 @@ export default function AdminPage() {
     let error
     if(editId){const res=await supabase.from('deals').update(dealData).eq('id',editId);error=res.error}
     else{const res=await supabase.from('deals').insert(dealData);error=res.error}
-    if(error){setMessage(`❌ Error: ${error.message}`)}else{setMessage(editId?'✅ Deal updated!':'✅ Deal added!');setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('');setEditId(null);fetchDeals();setTab('manage')}
+    if(error){setMessage(`❌ Error: ${error.message}`)}
+    else{setMessage(editId?'✅ Deal updated!':'✅ Deal added!');setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('');setEditId(null);fetchDeals();setTab('manage')}
     setSaving(false)
   }
 
@@ -130,7 +132,7 @@ export default function AdminPage() {
   async function toggleFreePreview(deal){
     const turningOn=!deal.is_free_preview
     const currentFreeCount=deals.filter(d=>d.is_free_preview&&d.id!==deal.id).length
-    if(turningOn&&currentFreeCount>=3){setMessage('⚠️ Max 3 free preview deals allowed. Remove one first.');setTimeout(()=>setMessage(''),3000);return}
+    if(turningOn&&currentFreeCount>=3){setMessage('⚠️ Max 3 free preview deals. Remove one first.');setTimeout(()=>setMessage(''),3000);return}
     await supabase.from('deals').update({is_free_preview:!deal.is_free_preview}).eq('id',deal.id);fetchDeals()
   }
 
@@ -141,14 +143,22 @@ export default function AdminPage() {
     setFlightUrl(deal.booking_url||'');setAutoFilled([]);setParseMsg('');setEditId(deal.id);setTab('add');window.scrollTo(0,0)
   }
 
-  async function sendAlerts(){
-    if(!confirm(`Send deal alerts to all Pro subscribers?\n\n${deals.filter(d=>d.is_active).length} active deals will be included.`))return
-    setAlertLoading(true);setAlertResult(null)
-    try{
-      const res=await fetch('/api/send-alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({secret:'yolofare-cron-2026'})})
-      const data=await res.json();setAlertResult(data)
-    }catch(err){setAlertResult({error:err.message})}
-    setAlertLoading(false)
+  // ── Send alert for ONE specific deal ──
+  async function sendDealAlert(deal) {
+    if (!confirm(`Send alert for this deal to all Pro subscribers?\n\n${deal.origin_code} → ${deal.dest_code} · ${deal.destination}\n₹${deal.deal_price?.toLocaleString('en-IN')} · ${deal.savings_pct}% off`)) return
+    setSendingDealId(deal.id)
+    try {
+      const res = await fetch('/api/send-alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: 'yolofare-cron-2026', dealId: deal.id })
+      })
+      const data = await res.json()
+      setAlertResults(prev => ({ ...prev, [deal.id]: { ...data, sentAt: new Date().toLocaleTimeString() } }))
+    } catch (err) {
+      setAlertResults(prev => ({ ...prev, [deal.id]: { error: err.message } }))
+    }
+    setSendingDealId(null)
   }
 
   const isAF=(f)=>autoFilled.includes(f)
@@ -156,27 +166,27 @@ export default function AdminPage() {
   const freeCount=deals.filter(d=>d.is_free_preview).length
 
   const s={
-    page:{minHeight:'100vh',background:'#0D0A08',color:'#FFF5EC',fontFamily:"'DM Sans', sans-serif",padding:'0 0 80px'},
+    page:{minHeight:'100vh',background:'#0D0A08',color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",padding:'0 0 80px'},
     nav:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 40px',height:60,background:'rgba(255,255,255,0.05)',borderBottom:'0.5px solid rgba(255,255,255,0.1)'},
-    logo:{fontFamily:"'Syne', sans-serif",fontSize:18,fontWeight:800,color:'#FFF5EC',textDecoration:'none'},
+    logo:{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,color:'#FFF5EC',textDecoration:'none'},
     wrap:{maxWidth:900,margin:'0 auto',padding:'40px 24px'},
     label:{display:'block',fontSize:11,color:'rgba(255,245,236,0.4)',letterSpacing:1.5,textTransform:'uppercase',marginBottom:8},
-    input:{width:'100%',padding:'12px 14px',background:'rgba(255,255,255,0.06)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans', sans-serif",fontSize:14,outline:'none',marginBottom:16,boxSizing:'border-box'},
-    inputAuto:{width:'100%',padding:'12px 14px',background:'rgba(76,175,80,0.07)',border:'0.5px solid rgba(76,175,80,0.35)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans', sans-serif",fontSize:14,outline:'none',marginBottom:16,boxSizing:'border-box'},
-    select:{width:'100%',padding:'12px 14px',background:'#1a1410',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans', sans-serif",fontSize:14,outline:'none',marginBottom:16},
-    selectAuto:{width:'100%',padding:'12px 14px',background:'rgba(76,175,80,0.07)',border:'0.5px solid rgba(76,175,80,0.35)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans', sans-serif",fontSize:14,outline:'none',marginBottom:16},
-    btn:{background:'#FF5C3A',color:'white',border:'none',padding:'12px 28px',borderRadius:100,fontFamily:"'Syne', sans-serif",fontSize:14,fontWeight:700,cursor:'pointer'},
+    input:{width:'100%',padding:'12px 14px',background:'rgba(255,255,255,0.06)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:'none',marginBottom:16,boxSizing:'border-box'},
+    inputAuto:{width:'100%',padding:'12px 14px',background:'rgba(76,175,80,0.07)',border:'0.5px solid rgba(76,175,80,0.35)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:'none',marginBottom:16,boxSizing:'border-box'},
+    select:{width:'100%',padding:'12px 14px',background:'#1a1410',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:'none',marginBottom:16},
+    selectAuto:{width:'100%',padding:'12px 14px',background:'rgba(76,175,80,0.07)',border:'0.5px solid rgba(76,175,80,0.35)',borderRadius:10,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:'none',marginBottom:16},
+    btn:{background:'#FF5C3A',color:'white',border:'none',padding:'12px 28px',borderRadius:100,fontFamily:"'Syne',sans-serif",fontSize:14,fontWeight:700,cursor:'pointer'},
     card:{background:'rgba(255,255,255,0.05)',borderRadius:16,padding:'16px 20px',marginBottom:12},
     grid2:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 20px'},
     grid3:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0 20px'},
-    tab:(active)=>({padding:'10px 24px',borderRadius:100,fontSize:13,cursor:'pointer',border:'none',fontFamily:"'DM Sans', sans-serif",background:active?'#FF5C3A':'rgba(255,255,255,0.07)',color:active?'white':'rgba(255,245,236,0.55)'}),
+    tab:(active)=>({padding:'10px 24px',borderRadius:100,fontSize:13,cursor:'pointer',border:'none',fontFamily:"'DM Sans',sans-serif",background:active?'#FF5C3A':'rgba(255,255,255,0.07)',color:active?'white':'rgba(255,245,236,0.55)'}),
   }
 
   if(!authed)return(
     <div style={{...s.page,display:'flex',alignItems:'center',justifyContent:'center'}}>
       <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
       <div style={{width:360,background:'rgba(255,255,255,0.07)',border:'0.5px solid rgba(255,255,255,0.12)',borderRadius:24,padding:36}}>
-        <div style={{fontFamily:"'Syne', sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>Admin Panel</div>
+        <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,fontWeight:800,marginBottom:8}}>Admin Panel</div>
         <div style={{fontSize:13,color:'rgba(255,245,236,0.5)',marginBottom:28}}>YoloFare deal management</div>
         <form onSubmit={handleLogin}>
           <label style={s.label}>Password</label>
@@ -195,7 +205,7 @@ export default function AdminPage() {
         <span style={s.logo}>Yolo<span style={{color:'#FF5C3A'}}>Fare</span> Admin</span>
         <div style={{display:'flex',gap:12,alignItems:'center'}}>
           <Link href="/deals" style={{fontSize:13,color:'rgba(255,245,236,0.5)',textDecoration:'none'}}>View site</Link>
-          <button onClick={()=>{localStorage.removeItem('yf_admin_auth');setAuthed(false)}} style={{fontSize:13,color:'rgba(255,245,236,0.4)',background:'none',border:'0.5px solid rgba(255,255,255,0.15)',padding:'6px 14px',borderRadius:100,cursor:'pointer',fontFamily:"'DM Sans', sans-serif"}}>Sign out</button>
+          <button onClick={()=>{localStorage.removeItem('yf_admin_auth');setAuthed(false)}} style={{fontSize:13,color:'rgba(255,245,236,0.4)',background:'none',border:'0.5px solid rgba(255,255,255,0.15)',padding:'6px 14px',borderRadius:100,cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>Sign out</button>
         </div>
       </nav>
 
@@ -204,7 +214,7 @@ export default function AdminPage() {
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:32}}>
           {[['Total deals',deals.length],['Active',deals.filter(d=>d.is_active).length],['Free preview',`${freeCount}/3`],['Pro only',deals.filter(d=>d.is_active&&!d.is_free_preview).length]].map(([label,val])=>(
             <div key={label} style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)',borderRadius:14,padding:'16px 20px'}}>
-              <div style={{fontFamily:"'Syne', sans-serif",fontSize:28,fontWeight:700,color:label==='Free preview'?'#4CAF50':'#FF5C3A'}}>{val}</div>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:700,color:label==='Free preview'?'#4CAF50':'#FF5C3A'}}>{val}</div>
               <div style={{fontSize:12,color:'rgba(255,245,236,0.4)',marginTop:4}}>{label}</div>
             </div>
           ))}
@@ -212,15 +222,8 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div style={{display:'flex',gap:8,marginBottom:28,flexWrap:'wrap'}}>
-          <button style={s.tab(tab==='add')} onClick={()=>{setTab('add');setEditId(null);setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('')}}>
-            {editId?'✏️ Edit deal':'➕ Add deal'}
-          </button>
-          <button style={s.tab(tab==='manage')} onClick={()=>setTab('manage')}>
-            📋 Manage deals ({deals.filter(d=>d.is_active).length} active)
-          </button>
-          <button style={s.tab(tab==='alerts')} onClick={()=>setTab('alerts')}>
-            📬 Send alerts
-          </button>
+          <button style={s.tab(tab==='add')} onClick={()=>{setTab('add');setEditId(null);setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('')}}>{editId?'✏️ Edit deal':'➕ Add deal'}</button>
+          <button style={s.tab(tab==='manage')} onClick={()=>setTab('manage')}>📋 Manage deals ({deals.filter(d=>d.is_active).length} active)</button>
         </div>
 
         {message&&(
@@ -229,22 +232,16 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ── ADD/EDIT FORM ── */}
+        {/* ── ADD / EDIT ── */}
         {tab==='add'&&(
           <form onSubmit={handleSubmit} style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)',borderRadius:20,padding:28}}>
-            <div style={{fontFamily:"'Syne', sans-serif",fontSize:18,fontWeight:700,marginBottom:24}}>{editId?'Edit deal':'Add new deal'}</div>
-
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:700,marginBottom:24}}>{editId?'Edit deal':'Add new deal'}</div>
             <div style={{background:'rgba(255,92,58,0.06)',border:'1px solid rgba(255,92,58,0.25)',borderRadius:16,padding:'20px 20px 4px',marginBottom:28}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                <span style={{fontSize:18}}>✈️</span>
-                <span style={{fontFamily:"'Syne', sans-serif",fontSize:15,fontWeight:700}}>Paste Google Flights URL</span>
-                <span style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>— fields auto-fill instantly</span>
-              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span style={{fontSize:18}}>✈️</span><span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>Paste Google Flights URL</span><span style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>— fields auto-fill instantly</span></div>
               <p style={{fontSize:13,color:'rgba(255,245,236,0.45)',marginBottom:14,lineHeight:1.6}}>Go to <strong style={{color:'rgba(255,245,236,0.7)'}}>google.com/travel/flights</strong>, find the deal, copy the URL and paste below.</p>
               <input value={flightUrl} onChange={handleFlightUrlChange} style={{...s.input,fontSize:13,marginBottom:12}} placeholder="https://www.google.com/travel/flights/search?tfs=..."/>
               {parseMsg&&<div style={{fontSize:13,color:parseMsg.includes('✅')?'#4CAF50':'#FF8060',marginBottom:12,padding:'8px 12px',background:parseMsg.includes('✅')?'rgba(76,175,80,0.08)':'rgba(255,80,60,0.08)',borderRadius:8}}>{parseMsg}</div>}
             </div>
-
             <div style={s.grid2}>
               <div><label style={s.label}>Destination city * {isAF('destination')&&<span style={aTag}>✓ auto-filled</span>}</label><input name="destination" value={form.destination} onChange={handleFormChange} style={isAF('destination')?s.inputAuto:s.input} placeholder="e.g. Tokyo" required/></div>
               <div><label style={s.label}>Country code * {isAF('country')&&<span style={aTag}>✓ auto-filled</span>}</label><input name="country" value={form.country} onChange={handleFormChange} style={isAF('country')?s.inputAuto:s.input} placeholder="e.g. JP" required/></div>
@@ -266,25 +263,21 @@ export default function AdminPage() {
             <div style={s.grid3}>
               <div><label style={s.label}>Stops</label><select name="stops" value={form.stops} onChange={handleFormChange} style={s.select}><option value="0">Non-stop</option><option value="1">1 stop</option></select></div>
               <div><label style={s.label}>Travel dates {isAF('travel_dates')&&<span style={aTag}>✓ auto-filled</span>}</label><input name="travel_dates" value={form.travel_dates} onChange={handleFormChange} style={isAF('travel_dates')?s.inputAuto:s.input} placeholder="e.g. Aug–Sept 2026"/></div>
-              <div><label style={s.label}>Expires in (hours)</label><select name="expires_hours" value={form.expires_hours} onChange={handleFormChange} style={s.select}><option value="24">24 hours</option><option value="48">48 hours</option><option value="72">72 hours</option><option value="96">96 hours</option><option value="168">7 days</option></select></div>
+              <div><label style={s.label}>Expires in</label><select name="expires_hours" value={form.expires_hours} onChange={handleFormChange} style={s.select}><option value="24">24 hours</option><option value="48">48 hours</option><option value="72">72 hours</option><option value="96">96 hours</option><option value="168">7 days</option></select></div>
             </div>
             <div><label style={s.label}>Google Flights URL</label><input name="booking_url" value={form.booking_url} onChange={handleFormChange} style={s.input} placeholder="https://www.google.com/travel/flights/..."/></div>
             <div><label style={s.label}>Image URL (Unsplash)</label><input name="image_url" value={form.image_url} onChange={handleFormChange} style={s.input} placeholder="https://images.unsplash.com/..."/></div>
             <div><label style={s.label}>Description</label><input name="description" value={form.description} onChange={handleFormChange} style={s.input} placeholder="e.g. Non-stop deal to Tokyo — cherry blossom season."/></div>
-
             <div style={{background:'rgba(76,175,80,0.06)',border:'1px solid rgba(76,175,80,0.2)',borderRadius:14,padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
-                <div style={{fontSize:14,fontWeight:600,color:'#FFF5EC',marginBottom:4}}>🆓 Show as Free Preview deal</div>
-                <div style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Free users will see this. Max 3 allowed ({freeCount}/3 used).</div>
+                <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>🆓 Show as Free Preview deal</div>
+                <div style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Free users will see this. Max 3 ({freeCount}/3 used).</div>
               </div>
               <label style={{position:'relative',display:'inline-block',width:48,height:26,flexShrink:0}}>
                 <input type="checkbox" name="is_free_preview" checked={form.is_free_preview} onChange={handleFormChange} style={{opacity:0,width:0,height:0}}/>
-                <span style={{position:'absolute',cursor:'pointer',inset:0,background:form.is_free_preview?'#4CAF50':'rgba(255,255,255,0.15)',borderRadius:26,transition:'0.3s'}}>
-                  <span style={{position:'absolute',height:20,width:20,left:form.is_free_preview?24:3,bottom:3,background:'white',borderRadius:'50%',transition:'0.3s'}}/>
-                </span>
+                <span style={{position:'absolute',cursor:'pointer',inset:0,background:form.is_free_preview?'#4CAF50':'rgba(255,255,255,0.15)',borderRadius:26,transition:'0.3s'}}><span style={{position:'absolute',height:20,width:20,left:form.is_free_preview?24:3,bottom:3,background:'white',borderRadius:'50%',transition:'0.3s'}}/></span>
               </label>
             </div>
-
             <div style={{display:'flex',gap:12,marginTop:8}}>
               <button type="submit" disabled={saving} style={{...s.btn,opacity:saving?0.7:1}}>{saving?'Saving...':editId?'Update deal →':'Add deal →'}</button>
               {editId&&<button type="button" onClick={()=>{setEditId(null);setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('')}} style={{...s.btn,background:'rgba(255,255,255,0.1)'}}>Cancel</button>}
@@ -296,100 +289,64 @@ export default function AdminPage() {
         {tab==='manage'&&(
           <div>
             <div style={{background:'rgba(76,175,80,0.07)',border:'0.5px solid rgba(76,175,80,0.25)',borderRadius:14,padding:'14px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <div><span style={{fontSize:14,fontWeight:600}}>🆓 Free Preview slots: </span><span style={{fontSize:14,color:freeCount>=3?'#FF8060':'#4CAF50',fontWeight:700}}>{freeCount}/3 used</span></div>
-              <span style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Toggle FREE/PRO on any deal</span>
+              <div><span style={{fontSize:14,fontWeight:600}}>🆓 Free Preview: </span><span style={{fontSize:14,color:freeCount>=3?'#FF8060':'#4CAF50',fontWeight:700}}>{freeCount}/3 used</span></div>
+              <span style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Click 📬 to send an alert for any deal</span>
             </div>
+
             {loading?<div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>Loading...</div>
             :deals.length===0?<div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>No deals yet.</div>
             :deals.map(deal=>(
-              <div key={deal.id} style={{...s.card,opacity:deal.is_active?1:0.5,border:deal.is_free_preview?'1px solid rgba(76,175,80,0.4)':'0.5px solid rgba(255,255,255,0.1)'}}>
-                <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',width:'100%'}}>
-                  {deal.image_url&&<img src={deal.image_url} alt={deal.destination} style={{width:56,height:56,borderRadius:10,objectFit:'cover',flexShrink:0}}/>}
-                  <div style={{flex:1,minWidth:160}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2}}>
-                      <span style={{fontFamily:"'Syne', sans-serif",fontSize:15,fontWeight:700}}>{deal.origin_code} → {deal.dest_code} · {deal.destination}</span>
-                      {deal.is_free_preview&&<span style={{fontSize:10,fontWeight:700,background:'rgba(76,175,80,0.2)',color:'#4CAF50',border:'0.5px solid rgba(76,175,80,0.4)',padding:'2px 8px',borderRadius:100}}>FREE PREVIEW</span>}
+              <div key={deal.id}>
+                <div style={{...s.card,opacity:deal.is_active?1:0.5,border:deal.is_free_preview?'1px solid rgba(76,175,80,0.4)':'0.5px solid rgba(255,255,255,0.1)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',width:'100%'}}>
+                    {deal.image_url&&<img src={deal.image_url} alt={deal.destination} style={{width:56,height:56,borderRadius:10,objectFit:'cover',flexShrink:0}}/>}
+                    <div style={{flex:1,minWidth:160}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2,flexWrap:'wrap'}}>
+                        <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>{deal.origin_code} → {deal.dest_code} · {deal.destination}</span>
+                        {deal.is_free_preview&&<span style={{fontSize:10,fontWeight:700,background:'rgba(76,175,80,0.2)',color:'#4CAF50',border:'0.5px solid rgba(76,175,80,0.4)',padding:'2px 8px',borderRadius:100}}>FREE PREVIEW</span>}
+                      </div>
+                      <div style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>{deal.airline} · {deal.cabin_class} · {deal.stops===0?'Non-stop':'1 stop'} · {deal.travel_dates}</div>
                     </div>
-                    <div style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>{deal.airline} · {deal.cabin_class} · {deal.stops===0?'Non-stop':'1 stop'} · {deal.travel_dates}</div>
-                  </div>
-                  <div style={{textAlign:'right',flexShrink:0}}>
-                    <div style={{fontFamily:"'Syne', sans-serif",fontSize:18,fontWeight:700,color:'#FF5C3A'}}>₹{deal.deal_price?.toLocaleString('en-IN')}</div>
-                    <div style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>{deal.savings_pct}% off</div>
-                  </div>
-                  <div style={{display:'flex',gap:8,flexShrink:0,flexWrap:'wrap'}}>
-                    <button onClick={()=>toggleFreePreview(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:'pointer',fontFamily:"'DM Sans', sans-serif",fontWeight:600,background:deal.is_free_preview?'rgba(76,175,80,0.2)':'rgba(255,255,255,0.07)',color:deal.is_free_preview?'#4CAF50':'rgba(255,245,236,0.4)',boxShadow:deal.is_free_preview?'0 0 0 1px rgba(76,175,80,0.4)':'none'}}>
-                      {deal.is_free_preview?'🟢 FREE':'🔒 PRO'}
-                    </button>
-                    <button onClick={()=>editDeal(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'0.5px solid rgba(255,255,255,0.2)',background:'none',color:'#FFF5EC',cursor:'pointer',fontFamily:"'DM Sans', sans-serif"}}>Edit</button>
-                    <button onClick={()=>toggleActive(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',background:deal.is_active?'rgba(255,80,60,0.15)':'rgba(76,175,80,0.15)',color:deal.is_active?'#FF8060':'#4CAF50',cursor:'pointer',fontFamily:"'DM Sans', sans-serif"}}>{deal.is_active?'Deactivate':'Activate'}</button>
-                    <button onClick={()=>deleteDeal(deal.id)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',background:'rgba(255,0,0,0.1)',color:'#FF6060',cursor:'pointer',fontFamily:"'DM Sans', sans-serif"}}>Delete</button>
+                    <div style={{textAlign:'right',flexShrink:0}}>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:700,color:'#FF5C3A'}}>₹{deal.deal_price?.toLocaleString('en-IN')}</div>
+                      <div style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>{deal.savings_pct}% off</div>
+                    </div>
+                    <div style={{display:'flex',gap:8,flexShrink:0,flexWrap:'wrap'}}>
+
+                      {/* ── SEND ALERT BUTTON ── */}
+                      <button
+                        onClick={()=>sendDealAlert(deal)}
+                        disabled={sendingDealId===deal.id}
+                        title="Send alert for this deal to all Pro subscribers"
+                        style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:sendingDealId===deal.id?'not-allowed':'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,background:'rgba(255,92,58,0.15)',color:'#FF8060',opacity:sendingDealId===deal.id?0.6:1}}>
+                        {sendingDealId===deal.id?'⏳':'📬'} {sendingDealId===deal.id?'Sending...':'Send alert'}
+                      </button>
+
+                      <button onClick={()=>toggleFreePreview(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,background:deal.is_free_preview?'rgba(76,175,80,0.2)':'rgba(255,255,255,0.07)',color:deal.is_free_preview?'#4CAF50':'rgba(255,245,236,0.4)',boxShadow:deal.is_free_preview?'0 0 0 1px rgba(76,175,80,0.4)':'none'}}>
+                        {deal.is_free_preview?'🟢 FREE':'🔒 PRO'}
+                      </button>
+                      <button onClick={()=>editDeal(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'0.5px solid rgba(255,255,255,0.2)',background:'none',color:'#FFF5EC',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>Edit</button>
+                      <button onClick={()=>toggleActive(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',background:deal.is_active?'rgba(255,80,60,0.15)':'rgba(76,175,80,0.15)',color:deal.is_active?'#FF8060':'#4CAF50',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>{deal.is_active?'Deactivate':'Activate'}</button>
+                      <button onClick={()=>deleteDeal(deal.id)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',background:'rgba(255,0,0,0.1)',color:'#FF6060',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>Delete</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* ── SEND ALERTS TAB ── */}
-        {tab==='alerts'&&(
-          <div style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)',borderRadius:20,padding:28}}>
-            <div style={{fontFamily:"'Syne', sans-serif",fontSize:18,fontWeight:700,marginBottom:8}}>📬 Send deal alerts</div>
-            <p style={{fontSize:14,color:'rgba(255,245,236,0.5)',marginBottom:32,lineHeight:1.7}}>
-              Sends a beautiful email to all active Pro subscribers with today's live deals.<br/>
-              WhatsApp alerts activate once Wati is configured.
-            </p>
-
-            {/* Stats */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:32}}>
-              {[
-                ['✈️', `${deals.filter(d=>d.is_active).length}`, 'Active deals to send'],
-                ['📧', 'Resend', 'Email · Ready ✅'],
-                ['💬', 'Wati', 'WhatsApp · Setup needed'],
-              ].map(([icon,val,label])=>(
-                <div key={label} style={{background:'rgba(255,255,255,0.04)',border:'0.5px solid rgba(255,255,255,0.08)',borderRadius:14,padding:'20px',textAlign:'center'}}>
-                  <div style={{fontSize:24,marginBottom:8}}>{icon}</div>
-                  <div style={{fontFamily:"'Syne', sans-serif",fontSize:22,fontWeight:700,color:'#FF5C3A',marginBottom:4}}>{val}</div>
-                  <div style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>{label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Send button */}
-            <button onClick={sendAlerts} disabled={alertLoading} style={{...s.btn,width:'100%',padding:'16px',fontSize:16,opacity:alertLoading?0.7:1,cursor:alertLoading?'not-allowed':'pointer'}}>
-              {alertLoading?'⏳ Sending alerts...':'🚀 Send alerts to all Pro subscribers'}
-            </button>
-
-            {/* Result */}
-            {alertResult&&(
-              <div style={{marginTop:20,background:alertResult.error?'rgba(255,80,60,0.1)':'rgba(76,175,80,0.1)',border:`0.5px solid ${alertResult.error?'rgba(255,80,60,0.3)':'rgba(76,175,80,0.3)'}`,borderRadius:14,padding:'20px 24px'}}>
-                {alertResult.error?(
-                  <div style={{color:'#FF8060',fontSize:14}}>❌ {alertResult.error}</div>
-                ):(
-                  <>
-                    <div style={{fontSize:16,fontWeight:600,marginBottom:16}}>✅ Alerts sent!</div>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
-                      {[['📧 Emails sent',alertResult.emailsSent],['💬 WhatsApp sent',alertResult.whatsappSent],['👥 Total subscribers',alertResult.totalSubscribers]].map(([label,val])=>(
-                        <div key={label} style={{textAlign:'center'}}>
-                          <div style={{fontFamily:"'Syne', sans-serif",fontSize:24,fontWeight:700,color:'#FF5C3A'}}>{val??0}</div>
-                          <div style={{fontSize:12,color:'rgba(255,245,236,0.4)',marginTop:4}}>{label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
+                {/* ── Alert result for this deal ── */}
+                {alertResults[deal.id]&&(
+                  <div style={{marginBottom:12,marginTop:-8,background:alertResults[deal.id].error?'rgba(255,80,60,0.08)':'rgba(76,175,80,0.08)',border:`0.5px solid ${alertResults[deal.id].error?'rgba(255,80,60,0.25)':'rgba(76,175,80,0.25)'}`,borderRadius:'0 0 12px 12px',padding:'12px 20px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
+                    {alertResults[deal.id].error?(
+                      <span style={{fontSize:13,color:'#FF8060'}}>❌ {alertResults[deal.id].error}</span>
+                    ):(
+                      <>
+                        <span style={{fontSize:13,color:'#4CAF50',fontWeight:600}}>✅ Alert sent at {alertResults[deal.id].sentAt}</span>
+                        <span style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>📧 {alertResults[deal.id].emailsSent} emails · 💬 {alertResults[deal.id].whatsappSent} WhatsApp · 👥 {alertResults[deal.id].totalSubscribers} subscribers</span>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-
-            {/* Wati setup guide */}
-            <div style={{marginTop:28,background:'rgba(255,215,0,0.05)',border:'0.5px solid rgba(255,215,0,0.2)',borderRadius:14,padding:'20px 24px'}}>
-              <div style={{fontSize:13,fontWeight:600,color:'#FFD700',marginBottom:10}}>💬 To activate WhatsApp alerts:</div>
-              <ol style={{fontSize:13,color:'rgba(255,245,236,0.55)',lineHeight:2,margin:0,paddingLeft:20}}>
-                <li>Sign up at <strong style={{color:'rgba(255,245,236,0.8)'}}>wati.io</strong> and connect your WhatsApp Business number</li>
-                <li>Create a template named <strong style={{color:'rgba(255,245,236,0.8)'}}>yolofare_deal_alert</strong> (Marketing category)</li>
-                <li>Add to Vercel env vars: <strong style={{color:'rgba(255,245,236,0.8)'}}>WATI_API_ENDPOINT</strong> + <strong style={{color:'rgba(255,245,236,0.8)'}}>WATI_ACCESS_TOKEN</strong></li>
-                <li>Users opt in with their phone number on signup</li>
-              </ol>
-            </div>
+            ))}
           </div>
         )}
       </div>
