@@ -60,10 +60,7 @@ export const metadata = {
   alternates: {
     canonical: 'https://www.yolofare.com',
   },
-  verification: {
-    // Add your Google Search Console verification token here once you set it up:
-    google: '5NbhqF9DBg7zqw',,
-  },
+  verification: { google: "2dde3cba2535f84e" },
 }
 
 const structuredData = {
@@ -137,4 +134,5 @@ export default function RootLayout({ children }) {
     </html>
   )
 }
+
 
