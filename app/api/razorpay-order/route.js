@@ -3,7 +3,7 @@ export async function POST(request) {
   try {
     const { userId } = await request.json()
     if (!userId) return Response.json({ error: 'Missing userId' }, { status: 400 })
-    const keyId     = process.env.NEXT_PUBLIC_RAZORPAY_KEY
+    const keyId     = process.env.RAZORPAY_KEY_ID
     const keySecret = process.env.RAZORPAY_KEY_SECRET
     const shortId = userId.slice(-8)
     const ts      = Date.now().toString(36)
