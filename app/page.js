@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
@@ -7,6 +7,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState(null)
+  const [showMoreAirports, setShowMoreAirports] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -196,7 +197,7 @@ export default function Home() {
         </div>
 
         <div className="stats-grid">
-          {[['2,400+','Active members'],['₹18k+','Avg. savings'],['40–90%','Off regular fares'],['5 cities','DEL·BOM·BLR·HYD·MAA']].map(([val, label]) => (
+          {[['2,400+','Active members'],['₹18k+','Avg. savings'],['40–90%','Off regular fares'],['34 cities','All intl. airports']].map(([val, label]) => (
             <div key={label} style={{ background: 'rgba(13,10,8,0.8)', padding: '20px 12px', textAlign: 'center' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 700, color: '#FF5C3A', letterSpacing: -1 }}>{val}</div>
               <div style={{ fontSize: 10, color: 'rgba(255,245,236,0.35)', letterSpacing: 1, marginTop: 4, textTransform: 'uppercase' }}>{label}</div>
@@ -333,7 +334,7 @@ export default function Home() {
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.3)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>Coverage</div>
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 800, letterSpacing: -2, lineHeight: 1.05 }}>
-              5 cities.<br/>The whole world.
+              34 cities.<br/>The whole world.
             </h2>
           </div>
           <div className="cities-grid">
@@ -350,6 +351,31 @@ export default function Home() {
                 <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.4)' }}>{c.city}</div>
               </div>
             ))}
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowMoreAirports(v => !v)} style={{ background: 'rgba(255,92,58,0.1)', border: '0.5px solid rgba(255,92,58,0.3)', borderRadius: 16, padding: '16px 8px', textAlign: 'center', cursor: 'pointer', width: '100%', height: '100%' }}>
+                <div style={{ fontSize: 26, marginBottom: 8 }}>✈️</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, color: '#FF5C3A', marginBottom: 2 }}>+29</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,92,58,0.7)' }}>More</div>
+              </button>
+              {showMoreAirports && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#1a1410', border: '0.5px solid rgba(255,92,58,0.3)', borderRadius: 16, padding: '12px 8px', marginTop: 8, maxHeight: 320, overflowY: 'auto', minWidth: 200, boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
+                  {[
+                    ['AMD','Ahmedabad'],['ATQ','Amritsar'],['BBI','Bhubaneswar'],['BDQ','Vadodara'],
+                    ['BHO','Bhopal'],['BHU','Bhavnagar'],['CCJ','Kozhikode'],['CCU','Kolkata'],
+                    ['CJB','Coimbatore'],['COK','Kochi'],['GAU','Guwahati'],['GOP','Gorakhpur'],
+                    ['IDR','Indore'],['IXB','Bagdogra'],['IXC','Chandigarh'],['IXE','Mangalore'],
+                    ['IXJ','Jammu'],['IXL','Leh'],['IXM','Madurai'],['IXR','Ranchi'],
+                    ['IXS','Silchar'],['IXU','Aurangabad'],['IXZ','Port Blair'],['JAI','Jaipur'],
+                    ['LKO','Lucknow'],['NAG','Nagpur'],['PAT','Patna'],['PNQ','Pune'],['SXR','Srinagar'],
+                  ].map(([code, city]) => (
+                    <div key={code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 13, fontWeight: 700, color: '#FFF5EC' }}>{code}</span>
+                      <span style={{ fontSize: 11, color: 'rgba(255,245,236,0.45)' }}>{city}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
             {['🌏 South East Asia','🗼 Japan & Korea','🏰 Europe','🗽 USA & Canada','🕌 Middle East','🦘 Oceania'].map((r) => (
