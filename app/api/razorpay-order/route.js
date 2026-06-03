@@ -15,7 +15,7 @@ export async function POST(request) {
         'Authorization': 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64'),
       },
       body: JSON.stringify({
-        amount:   100,
+        amount:   99900,
         currency: 'INR',
         receipt,
         notes: { userId, plan: 'pro' },
