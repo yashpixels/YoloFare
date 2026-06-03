@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
@@ -32,12 +32,12 @@ export default function Home() {
 
   // CHANGE 1: Added img URLs and fixed flag emojis
   const sampleDeals = [
-    { from: 'DEL', dest: 'Singapore', flag: '????', price: 14200, was: 38000, off: 63, airline: 'IndiGo', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&q=80' },
-    { from: 'BOM', dest: 'Bangkok', flag: '????', price: 11800, was: 29000, off: 59, airline: 'Air Asia', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5?w=600&q=80' },
-    { from: 'BLR', dest: 'London', flag: '????', price: 42500, was: 98000, off: 57, airline: 'Air India', type: 'Business', stops: 1, img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80' },
-    { from: 'DEL', dest: 'Tokyo', flag: '????', price: 28900, was: 72000, off: 60, airline: 'Vistara', type: 'Economy', stops: 1, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80' },
-    { from: 'HYD', dest: 'Dubai', flag: '????', price: 9400, was: 24000, off: 61, airline: 'IndiGo', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80' },
-    { from: 'MAA', dest: 'Bali', flag: '????', price: 13600, was: 34000, off: 60, airline: 'Air India', type: 'Economy', stops: 1, img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=80' },
+    { from: 'DEL', dest: 'Singapore', flag: '🇸🇬', price: 14200, was: 38000, off: 63, airline: 'IndiGo', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&q=80' },
+    { from: 'BOM', dest: 'Bangkok', flag: '🇹🇭', price: 11800, was: 29000, off: 59, airline: 'Air Asia', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5?w=600&q=80' },
+    { from: 'BLR', dest: 'London', flag: '🇬🇧', price: 42500, was: 98000, off: 57, airline: 'Air India', type: 'Business', stops: 1, img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80' },
+    { from: 'DEL', dest: 'Tokyo', flag: '🇯🇵', price: 28900, was: 72000, off: 60, airline: 'Vistara', type: 'Economy', stops: 1, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80' },
+    { from: 'HYD', dest: 'Dubai', flag: '🇦🇪', price: 9400, was: 24000, off: 61, airline: 'IndiGo', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80' },
+    { from: 'MAA', dest: 'Bali', flag: '🇮🇩', price: 13600, was: 34000, off: 60, airline: 'Air India', type: 'Economy', stops: 1, img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=80' },
   ]
 
   return (
@@ -122,7 +122,7 @@ export default function Home() {
         <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, #FF8C5A 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.07, top: '60%', left: '45%' }} />
       </div>
 
-      {/* -- NAV -- */}
+      {/* ── NAV ── */}
       <nav className="nav-bar" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px', height: 64, background: scrolled ? 'rgba(13,10,8,0.88)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '0.5px solid rgba(255,255,255,0.08)' : 'none', transition: 'all 0.3s ease' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
@@ -145,7 +145,7 @@ export default function Home() {
           ) : (
             <Link href="/login" className="nav-link" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', transition: 'color 0.2s' }}>Login</Link>
           )}
-          <Link href="/deals" style={{ background: '#FF5C3A', color: 'white', padding: '9px 22px', borderRadius: 100, fontSize: 13, fontWeight: 600, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif" }}>Browse deals ?</Link>
+          <Link href="/deals" style={{ background: '#FF5C3A', color: 'white', padding: '9px 22px', borderRadius: 100, fontSize: 13, fontWeight: 600, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif" }}>Browse deals →</Link>
         </div>
 
         <button className="hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
@@ -167,15 +167,15 @@ export default function Home() {
           ) : (
             <a href="/login" onClick={() => setMenuOpen(false)}>Login</a>
           )}
-          <a href="/deals" className="mobile-menu-btn" onClick={() => setMenuOpen(false)}>Browse deals ?</a>
+          <a href="/deals" className="mobile-menu-btn" onClick={() => setMenuOpen(false)}>Browse deals →</a>
         </div>
       )}
 
-      {/* -- HERO -- */}
+      {/* ── HERO ── */}
       <section className="hero-sec" style={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 24px 80px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,92,58,0.1)', border: '0.5px solid rgba(255,92,58,0.3)', borderRadius: 100, padding: '6px 16px', marginBottom: 32, fontSize: 13, color: '#FF8060' }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF5C3A', display: 'inline-block', animation: 'pulse 2s infinite' }}/>
-          Live deals � updated every 6 hours
+          Live deals — updated every 6 hours
         </div>
 
         <h1 className="hero-h1" style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(40px, 8vw, 96px)', fontWeight: 800, lineHeight: 0.95, letterSpacing: -3, marginBottom: 28, maxWidth: 900 }}>
@@ -189,7 +189,7 @@ export default function Home() {
 
         <div className="hero-btns" style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 64, width: '100%', maxWidth: 440 }}>
           <Link href="/deals" style={{ background: '#FF5C3A', color: 'white', padding: '15px 32px', borderRadius: 100, fontSize: 16, fontWeight: 600, textDecoration: 'none', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3, flex: 1, textAlign: 'center', minWidth: 160 }}>
-            Browse deals ?
+            Browse deals →
           </Link>
           <a href="#how-it-works" style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,245,236,0.8)', padding: '15px 32px', borderRadius: 100, fontSize: 15, textDecoration: 'none', border: '0.5px solid rgba(255,255,255,0.15)', flex: 1, textAlign: 'center', minWidth: 140 }}>
             How it works
@@ -197,7 +197,7 @@ export default function Home() {
         </div>
 
         <div className="stats-grid">
-          {[['2,400+','Active members'],['?18k+','Avg. savings'],['40�90%','Off regular fares'],['34 cities','All intl. airports']].map(([val, label]) => (
+          {[['2,400+','Active members'],['₹18k+','Avg. savings'],['40–90%','Off regular fares'],['34 cities','All intl. airports']].map(([val, label]) => (
             <div key={label} style={{ background: 'rgba(13,10,8,0.8)', padding: '20px 12px', textAlign: 'center' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(18px, 2.5vw, 26px)', fontWeight: 700, color: '#FF5C3A', letterSpacing: -1 }}>{val}</div>
               <div style={{ fontSize: 10, color: 'rgba(255,245,236,0.35)', letterSpacing: 1, marginTop: 4, textTransform: 'uppercase' }}>{label}</div>
@@ -206,7 +206,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* -- SAMPLE DEALS -- */}
+      {/* ── SAMPLE DEALS ── */}
       <section style={{ position: 'relative', zIndex: 1, padding: '40px 0 80px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div className="deals-wrap">
@@ -215,7 +215,7 @@ export default function Home() {
                 <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.3)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Sample deals</div>
                 <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: 800, letterSpacing: -1.5, lineHeight: 1 }}>What deals look like</h2>
               </div>
-              <Link href="/deals" style={{ fontSize: 14, color: '#FF5C3A', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>See all live deals ?</Link>
+              <Link href="/deals" style={{ fontSize: 14, color: '#FF5C3A', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>See all live deals →</Link>
             </div>
 
             <div className="deals-grid">
@@ -228,9 +228,9 @@ export default function Home() {
                       <div style={{ fontSize: 36 }}>{deal.flag}</div>
                       <span style={{ background: '#FF5C3A', color: 'white', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 100 }}>{deal.off}% off</span>
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.35)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>{deal.from} ? {deal.dest}</div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 700, letterSpacing: -1, marginBottom: 2 }}>?{deal.price.toLocaleString('en-IN')}</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.3)', textDecoration: 'line-through' }}>?{deal.was.toLocaleString('en-IN')}</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.35)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>{deal.from} → {deal.dest}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 700, letterSpacing: -1, marginBottom: 2 }}>₹{deal.price.toLocaleString('en-IN')}</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.3)', textDecoration: 'line-through' }}>₹{deal.was.toLocaleString('en-IN')}</div>
                   </div>
                   <div style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -248,14 +248,14 @@ export default function Home() {
 
             <div style={{ textAlign: 'center', marginTop: 32 }}>
               <Link href="/deals" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,245,236,0.7)', padding: '12px 28px', borderRadius: 100, fontSize: 14, textDecoration: 'none', border: '0.5px solid rgba(255,255,255,0.12)', display: 'inline-block' }}>
-                Unlock all deals � ?999/mo
+                Unlock all deals — ₹999/mo
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* -- TESTIMONIALS -- CHANGE 3: New section */}
+      {/* ── TESTIMONIALS ── CHANGE 3: New section */}
       <section className="sec" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
@@ -266,12 +266,12 @@ export default function Home() {
           </div>
           <div className="testimonials-grid">
             {[
-              { name: 'Priya S.', city: 'Delhi', route: 'DEL ? CDG', saving: '?41,000', paid: '?57,000', was: '?98,000', avatar: 'PS', color: '#FF5C3A', quote: 'I was planning to skip Europe this year. Then YoloFare showed me a Paris deal for under ?60k. Booked same day.' },
-              { name: 'Rahul M.', city: 'Mumbai', route: 'BOM ? NRT', saving: '?37,800', paid: '?34,200', was: '?72,000', avatar: 'RM', color: '#E8A838', quote: 'Tokyo for ?34k return from Mumbai. I checked 3 times to make sure it was real. It was. Already planning the next one.' },
-              { name: 'Ananya K.', city: 'Bangalore', route: 'BLR ? LHR', saving: '?55,500', paid: '?42,500', was: '?98,000', avatar: 'AK', color: '#38C5A8', quote: 'Business class to London for less than economy usually costs. My colleagues thought I was lying about the price.' },
-              { name: 'Vikram P.', city: 'Hyderabad', route: 'HYD ? DXB', saving: '?14,600', paid: '?9,400', was: '?24,000', avatar: 'VP', color: '#8B7CF8', quote: 'Dubai for under ?10k? Non-stop too. Absolutely worth the Pro subscription. Paid for 10 months in one booking.' },
-              { name: 'Meera T.', city: 'Delhi', route: 'DEL ? SIN', saving: '?23,800', paid: '?14,200', was: '?38,000', avatar: 'MT', color: '#FF7BAC', quote: 'Solo trip to Singapore sorted in 10 minutes. The alert came in the morning, I booked before lunch. So smooth.' },
-              { name: 'Arjun N.', city: 'Chennai', route: 'MAA ? DPS', saving: '?20,400', paid: '?13,600', was: '?34,000', avatar: 'AN', color: '#4CAF50', quote: 'Bali for ?13k from Chennai � honeymoon sorted. YoloFare paid for itself 20x over on that one trip.' },
+              { name: 'Priya S.', city: 'Delhi', route: 'DEL → CDG', saving: '₹41,000', paid: '₹57,000', was: '₹98,000', avatar: 'PS', color: '#FF5C3A', quote: 'I was planning to skip Europe this year. Then YoloFare showed me a Paris deal for under ₹60k. Booked same day.' },
+              { name: 'Rahul M.', city: 'Mumbai', route: 'BOM → NRT', saving: '₹37,800', paid: '₹34,200', was: '₹72,000', avatar: 'RM', color: '#E8A838', quote: 'Tokyo for ₹34k return from Mumbai. I checked 3 times to make sure it was real. It was. Already planning the next one.' },
+              { name: 'Ananya K.', city: 'Bangalore', route: 'BLR → LHR', saving: '₹55,500', paid: '₹42,500', was: '₹98,000', avatar: 'AK', color: '#38C5A8', quote: 'Business class to London for less than economy usually costs. My colleagues thought I was lying about the price.' },
+              { name: 'Vikram P.', city: 'Hyderabad', route: 'HYD → DXB', saving: '₹14,600', paid: '₹9,400', was: '₹24,000', avatar: 'VP', color: '#8B7CF8', quote: 'Dubai for under ₹10k? Non-stop too. Absolutely worth the Pro subscription. Paid for 10 months in one booking.' },
+              { name: 'Meera T.', city: 'Delhi', route: 'DEL → SIN', saving: '₹23,800', paid: '₹14,200', was: '₹38,000', avatar: 'MT', color: '#FF7BAC', quote: 'Solo trip to Singapore sorted in 10 minutes. The alert came in the morning, I booked before lunch. So smooth.' },
+              { name: 'Arjun N.', city: 'Chennai', route: 'MAA → DPS', saving: '₹20,400', paid: '₹13,600', was: '₹34,000', avatar: 'AN', color: '#4CAF50', quote: 'Bali for ₹13k from Chennai — honeymoon sorted. YoloFare paid for itself 20x over on that one trip.' },
             ].map((t, i) => (
               <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -302,7 +302,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* -- HOW IT WORKS -- */}
+      {/* ── HOW IT WORKS ── */}
       <section id="how-it-works" className="sec" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
@@ -313,9 +313,9 @@ export default function Home() {
           </div>
           <div className="how-grid">
             {[
-              { num: '01', icon: '??', title: 'We scan 95+ routes', desc: 'Our system checks Google Flights across 95 international routes from 5 Indian cities every 6 hours � automatically.' },
-              { num: '02', icon: '?', title: 'Filter the real deals', desc: 'Only flights with 20%+ savings vs typical fares make the cut. No junk, no expired prices, no sponsored results.' },
-              { num: '03', icon: '??', title: 'You book in seconds', desc: 'Click directly to Google Flights or the airline. No middlemen, no markup, no booking fees. Ever.' },
+              { num: '01', icon: '🔍', title: 'We scan 95+ routes', desc: 'Our system checks Google Flights across 95 international routes from 5 Indian cities every 6 hours — automatically.' },
+              { num: '02', icon: '⚡', title: 'Filter the real deals', desc: 'Only flights with 20%+ savings vs typical fares make the cut. No junk, no expired prices, no sponsored results.' },
+              { num: '03', icon: '✈️', title: 'You book in seconds', desc: 'Click directly to Google Flights or the airline. No middlemen, no markup, no booking fees. Ever.' },
             ].map((step) => (
               <div key={step.num} style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: 28 }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, color: 'rgba(255,92,58,0.15)', lineHeight: 1, marginBottom: 14 }}>{step.num}</div>
@@ -328,7 +328,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* -- DESTINATIONS -- */}
+      {/* ── DESTINATIONS ── */}
       <section id="destinations" className="sec" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
@@ -339,11 +339,11 @@ export default function Home() {
           </div>
           <div className="cities-grid">
             {[
-              { code: 'DEL', city: 'Delhi',     emoji: '??' },
-              { code: 'BOM', city: 'Mumbai',    emoji: '??' },
-              { code: 'BLR', city: 'Bangalore', emoji: '??' },
-              { code: 'HYD', city: 'Hyderabad', emoji: '??' },
-              { code: 'MAA', city: 'Chennai',   emoji: '??' },
+              { code: 'DEL', city: 'Delhi',     emoji: '🛕' },
+              { code: 'BOM', city: 'Mumbai',    emoji: '🌊' },
+              { code: 'BLR', city: 'Bangalore', emoji: '🌿' },
+              { code: 'HYD', city: 'Hyderabad', emoji: '💎' },
+              { code: 'MAA', city: 'Chennai',   emoji: '🎡' },
             ].map((c) => (
               <div key={c.code} style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: '16px 8px', textAlign: 'center' }}>
                 <div style={{ fontSize: 26, marginBottom: 8 }}>{c.emoji}</div>
@@ -353,7 +353,7 @@ export default function Home() {
             ))}
             <div style={{ position: 'relative' }}>
               <button onClick={() => setShowMoreAirports(v => !v)} style={{ background: 'rgba(255,92,58,0.1)', border: '0.5px solid rgba(255,92,58,0.3)', borderRadius: 16, padding: '16px 8px', textAlign: 'center', cursor: 'pointer', width: '100%', height: '100%' }}>
-                <div style={{ fontSize: 26, marginBottom: 8 }}>??</div>
+                <div style={{ fontSize: 26, marginBottom: 8 }}>✈️</div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, color: '#FF5C3A', marginBottom: 2 }}>+29</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,92,58,0.7)' }}>More</div>
               </button>
@@ -378,14 +378,14 @@ export default function Home() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {['?? South East Asia','?? Japan & Korea','?? Europe','?? USA & Canada','?? Middle East','?? Oceania'].map((r) => (
+            {['🌏 South East Asia','🗼 Japan & Korea','🏰 Europe','🗽 USA & Canada','🕌 Middle East','🦘 Oceania'].map((r) => (
               <span key={r} style={{ background: 'rgba(255,92,58,0.08)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 100, padding: '8px 16px', fontSize: 13, color: '#FF8060' }}>{r}</span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* -- PRICING -- */}
+      {/* ── PRICING ── */}
       <section id="pricing" className="sec" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
@@ -393,17 +393,17 @@ export default function Home() {
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(28px, 5vw, 52px)', fontWeight: 800, letterSpacing: -2, marginBottom: 16, lineHeight: 1.05 }}>
               One trip pays for<br/><em style={{ fontStyle: 'italic', fontFamily: 'Georgia, serif', fontWeight: 400, color: '#FF5C3A' }}>18 months</em> of Pro.
             </h2>
-            <p style={{ fontSize: 16, color: 'rgba(255,245,236,0.45)', fontWeight: 300 }}>Avg. member saves ?18,000+ per trip. At ?999/mo that's an 18x ROI on your first booking.</p>
+            <p style={{ fontSize: 16, color: 'rgba(255,245,236,0.45)', fontWeight: 300 }}>Avg. member saves ₹18,000+ per trip. At ₹999/mo that's an 18x ROI on your first booking.</p>
           </div>
 
           <div className="pricing-grid">
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: 28 }}>
               <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Free</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, marginBottom: 4 }}>?0</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, marginBottom: 4 }}>₹0</div>
               <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Forever free</div>
               {['3 deals visible','South East Asia only','Economy class','Email signup'].map((f) => (
                 <div key={f} style={{ fontSize: 14, color: 'rgba(255,245,236,0.5)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <span style={{ color: 'rgba(255,245,236,0.2)', fontSize: 18 }}>�</span>{f}
+                  <span style={{ color: 'rgba(255,245,236,0.2)', fontSize: 18 }}>·</span>{f}
                 </div>
               ))}
               <Link href="/deals" style={{ display: 'block', textAlign: 'center', marginTop: 24, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,245,236,0.6)', padding: '13px', borderRadius: 100, fontSize: 14, textDecoration: 'none', border: '0.5px solid rgba(255,255,255,0.1)' }}>
@@ -415,24 +415,24 @@ export default function Home() {
               <div style={{ position: 'absolute', top: 0, right: 0, background: '#FF5C3A', color: 'white', fontSize: 10, fontWeight: 700, padding: '6px 16px', borderRadius: '0 24px 0 12px', letterSpacing: 0.5 }}>MOST POPULAR</div>
               <div style={{ fontSize: 11, color: 'rgba(255,92,58,0.8)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Pro</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800 }}>?999</span>
+                <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800 }}>₹999</span>
                 <span style={{ fontSize: 14, color: 'rgba(255,245,236,0.4)' }}>/month</span>
               </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Cancel anytime � No hidden fees</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Cancel anytime · No hidden fees</div>
               {['All deals unlocked','All regions & all classes','Early access (2 hrs before free)','WhatsApp deal alerts','Price history & analytics','Cancel anytime'].map((f) => (
                 <div key={f} style={{ fontSize: 14, color: 'rgba(255,245,236,0.75)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <span style={{ color: '#4CAF50', fontWeight: 700 }}>?</span>{f}
+                  <span style={{ color: '#4CAF50', fontWeight: 700 }}>✓</span>{f}
                 </div>
               ))}
               <Link href="/pricing" style={{ display: 'block', textAlign: 'center', marginTop: 24, background: '#FF5C3A', color: 'white', padding: '14px', borderRadius: 100, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif" }}>
-                Upgrade to Pro ?
+                Upgrade to Pro →
               </Link>
-              <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,245,236,0.25)', marginTop: 10 }}>Secured by Razorpay � UPI, Cards, NetBanking</div>
+              <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,245,236,0.25)', marginTop: 10 }}>Secured by Razorpay · UPI, Cards, NetBanking</div>
             </div>
           </div>
 
           <div className="roi-grid">
-            {[['?999','Monthly cost'],['?18,000+','Avg. savings per trip'],['18x','ROI on first booking']].map(([val, label], i) => (
+            {[['₹999','Monthly cost'],['₹18,000+','Avg. savings per trip'],['18x','ROI on first booking']].map(([val, label], i) => (
               <div key={label} className="roi-cell" style={{ padding: '20px', textAlign: 'center', borderRight: i < 2 ? '0.5px solid rgba(255,255,255,0.08)' : 'none' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 700, color: '#FF5C3A', letterSpacing: -1 }}>{val}</div>
                 <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.35)', marginTop: 4 }}>{label}</div>
@@ -442,7 +442,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* -- CTA -- */}
+      {/* ── CTA ── */}
       <section style={{ position: 'relative', zIndex: 1, padding: '40px 20px 80px' }}>
         <div style={{ maxWidth: 820, margin: '0 auto', background: 'linear-gradient(135deg, rgba(255,92,58,0.1) 0%, rgba(255,92,58,0.05) 100%)', border: '0.5px solid rgba(255,92,58,0.25)', borderRadius: 28, textAlign: 'center' }}>
           <div className="cta-inner">
@@ -450,16 +450,16 @@ export default function Home() {
               Your next trip is waiting.
             </h2>
             <p style={{ fontSize: 16, color: 'rgba(255,245,236,0.5)', marginBottom: 36, fontWeight: 300 }}>
-              Browse live deals right now � no signup needed for the first 3.
+              Browse live deals right now — no signup needed for the first 3.
             </p>
             <Link href="/deals" style={{ background: '#FF5C3A', color: 'white', padding: '16px 44px', borderRadius: 100, fontSize: 16, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif", display: 'inline-block', letterSpacing: -0.3 }}>
-              See live deals ?
+              See live deals →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* -- APP COMING SOON -- CHANGE 4: New section */}
+      {/* ── APP COMING SOON ── CHANGE 4: New section */}
       <section className="sec" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.3)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>Mobile app</div>
@@ -467,7 +467,7 @@ export default function Home() {
             YoloFare on your phone.<br/><em style={{ fontStyle: 'italic', fontFamily: 'Georgia, serif', fontWeight: 400, color: '#FF5C3A' }}>Coming soon.</em>
           </h2>
           <p style={{ fontSize: 15, color: 'rgba(255,245,236,0.45)', fontWeight: 300, marginBottom: 40 }}>
-            Get deal alerts the moment they drop � straight to your phone. iOS and Android apps launching soon.
+            Get deal alerts the moment they drop — straight to your phone. iOS and Android apps launching soon.
           </p>
           <div className="app-badges" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 16, padding: '14px 24px' }}>
@@ -491,12 +491,12 @@ export default function Home() {
             </div>
           </div>
           <div style={{ marginTop: 24, fontSize: 13, color: 'rgba(255,245,236,0.3)' }}>
-            ?? Pro members get early access when we launch
+            🔔 Pro members get early access when we launch
           </div>
         </div>
       </section>
 
-      {/* -- FOOTER -- */}
+      {/* ── FOOTER ── */}
       <footer className="footer-bar" style={{ position: 'relative', zIndex: 1, borderTop: '0.5px solid rgba(255,255,255,0.08)', padding: '36px 48px' }}>
         <div className="footer-row">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -506,17 +506,16 @@ export default function Home() {
               <circle cx="29" cy="22" r="2" fill="#FF5C3A"/>
             </svg>
             <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 800 }}>Yolo<span style={{ color: '#FF5C3A' }}>Fare</span></span>
-            <span style={{ fontSize: 12, color: 'rgba(255,245,236,0.25)' }}>� Sweet flight deals from India</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,245,236,0.25)' }}>· Sweet flight deals from India</span>
           </div>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
             {[['Deals','/deals'],['Pricing','/pricing'],['Login','/login'],['Admin','/admin']].map(([label, href]) => (
               <Link key={label} href={href} style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', textDecoration: 'none' }}>{label}</Link>
             ))}
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.2)' }}>� 2026 YoloFare</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.2)' }}>© 2026 YoloFare</div>
         </div>
       </footer>
     </div>
   )
 }
-
