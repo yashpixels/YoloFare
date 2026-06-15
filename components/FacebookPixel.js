@@ -21,7 +21,7 @@ export default function FacebookPixel() {
     't.src=v;s=b.getElementsByTagName(e)[0];',
     's.parentNode.insertBefore(t,s)}(window,document,"script",',
     '"https://connect.facebook.net/en_US/fbevents.js");',
-    'fbq("init","4407808209498127");',
+    'fbq("init","2564814423972147");',
     'fbq("track","PageView");'
   ].join('')
 
@@ -33,3 +33,4 @@ export default function FacebookPixel() {
     />
   )
 }
+
