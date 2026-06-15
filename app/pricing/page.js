@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
-import { trackProPurchase } from '../../lib/pixel'
+import { trackProPurchase } from '../../lib/pixel.js'
 
 function loadRazorpay() {
   return new Promise((resolve) => {
@@ -224,5 +224,6 @@ export default function PricingPage() {
     </div>
   )
 }
+
 
 

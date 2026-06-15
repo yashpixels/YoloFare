@@ -3,7 +3,7 @@
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
-import { FB_PIXEL_ID, pageview } from '../lib/pixel'
+import { FB_PIXEL_ID, pageview } from '../lib/pixel.js'
 
 export default function FacebookPixel() {
   const pathname = usePathname()
@@ -33,3 +33,4 @@ export default function FacebookPixel() {
     />
   )
 }
+

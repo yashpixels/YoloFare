@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { trackDealClick } from '../../lib/pixel'
+import { trackDealClick } from '../../lib/pixel.js'
 
 const REGIONS = ['All', 'South East Asia', 'Europe', 'USA', 'Canada', 'Middle East']
 const CITIES = ['All Cities', 'DEL', 'BOM', 'BLR', 'HYD', 'MAA']
@@ -291,4 +291,5 @@ export default function DealsPage() {
     </div>
   )
 }
+
 
