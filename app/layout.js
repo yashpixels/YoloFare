@@ -1,4 +1,4 @@
-﻿import FacebookPixel from '../components/FacebookPixel'
+import FacebookPixel from '../components/FacebookPixel'
 import './globals.css'
 
 export const metadata = {
