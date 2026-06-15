@@ -1,7 +1,8 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
+import { trackDealClick } from '../../lib/pixel'
 
 const REGIONS = ['All', 'South East Asia', 'Europe', 'USA', 'Canada', 'Middle East']
 const CITIES = ['All Cities', 'DEL', 'BOM', 'BLR', 'HYD', 'MAA']
@@ -14,7 +15,7 @@ export default function DealsPage() {
   const [city, setCity]           = useState('All Cities')
   const [cabinClass, setCabinClass] = useState('All Classes')
   const [user, setUser]           = useState(null)
-  const [isPro, setIsPro]         = useState(false)  // ← actual subscription check
+  const [isPro, setIsPro]         = useState(false)  // â† actual subscription check
 
   useEffect(() => {
     fetchDeals()
@@ -32,7 +33,7 @@ export default function DealsPage() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // ── Check if user has an active Pro subscription ──
+  // â”€â”€ Check if user has an active Pro subscription â”€â”€
   async function checkProStatus(userId) {
     const { data } = await supabase
       .from('subscriptions')
@@ -124,12 +125,12 @@ export default function DealsPage() {
           {user ? (
             <>
               <span className="nav-user-email" style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>
-                {isPro ? '⭐' : '👋'} {user.email}
+                {isPro ? 'â­' : 'ðŸ‘‹'} {user.email}
               </span>
               <button className="nav-signout" onClick={handleSignOut} style={{ fontSize: 13, color: 'rgba(255,245,236,0.4)', background: 'none', border: '0.5px solid rgba(255,255,255,0.12)', padding: '7px 16px', borderRadius: 100, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", whiteSpace: 'nowrap' }}>Sign out</button>
               {!isPro && (
                 <Link className="nav-upgrade" href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '9px 18px', borderRadius: 100, fontSize: 13, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>
-                  Upgrade · ₹999/mo
+                  Upgrade Â· â‚¹999/mo
                 </Link>
               )}
             </>
@@ -137,7 +138,7 @@ export default function DealsPage() {
             <>
               <Link href="/login" style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)', textDecoration: 'none', whiteSpace: 'nowrap' }} className="nav-signout">Login</Link>
               <Link className="nav-upgrade" href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '9px 18px', borderRadius: 100, fontSize: 13, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" }}>
-                Upgrade · ₹999/mo
+                Upgrade Â· â‚¹999/mo
               </Link>
             </>
           )}
@@ -150,13 +151,13 @@ export default function DealsPage() {
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.3)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
-            {loading ? 'Loading...' : isPro ? `${visibleDeals.length} deals available` : `${freeDeals.length} free deals · ${totalDeals - freeDeals.length} more with Pro`}
+            {loading ? 'Loading...' : isPro ? `${visibleDeals.length} deals available` : `${freeDeals.length} free deals Â· ${totalDeals - freeDeals.length} more with Pro`}
           </div>
           <h1 className="deals-h1" style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, letterSpacing: -1.5, marginBottom: 8 }}>
             Live flight deals
           </h1>
           <p style={{ fontSize: 15, color: 'rgba(255,245,236,0.55)', fontWeight: 300 }}>
-            Updated every 6 hours · 40% off minimum · Non-stop or 1 stop only
+            Updated every 6 hours Â· 40% off minimum Â· Non-stop or 1 stop only
           </p>
         </div>
 
@@ -183,45 +184,45 @@ export default function DealsPage() {
           ))}
         </div>
 
-        {/* Banner — logged out */}
+        {/* Banner â€” logged out */}
         {!user && (
           <div style={{ background: 'rgba(255,92,58,0.08)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 16, padding: '16px 20px', marginBottom: 28 }}>
             <div className="banner-row">
               <div>
-                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>You're on the free plan — {freeDeals.length} deals visible</div>
+                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>You're on the free plan â€” {freeDeals.length} deals visible</div>
                 <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)' }}>Sign in and upgrade to YoloFare Pro to unlock all {totalDeals} deals</div>
               </div>
               <div className="banner-btns">
                 <Link href="/login" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '0.5px solid rgba(255,255,255,0.2)', padding: '10px 20px', borderRadius: 100, fontSize: 13, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif", display: 'inline-block', textAlign: 'center' }}>Sign in</Link>
-                <Link href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '10px 20px', borderRadius: 100, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", textDecoration: 'none', display: 'inline-block', textAlign: 'center', whiteSpace: 'nowrap' }}>Upgrade · ₹999/mo</Link>
+                <Link href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '10px 20px', borderRadius: 100, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", textDecoration: 'none', display: 'inline-block', textAlign: 'center', whiteSpace: 'nowrap' }}>Upgrade Â· â‚¹999/mo</Link>
               </div>
             </div>
           </div>
         )}
 
-        {/* Banner — logged in but NOT Pro */}
+        {/* Banner â€” logged in but NOT Pro */}
         {user && !isPro && (
           <div style={{ background: 'rgba(255,92,58,0.08)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 16, padding: '16px 20px', marginBottom: 28 }}>
             <div className="banner-row">
               <div>
-                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>You're signed in — upgrade to see all {totalDeals} deals</div>
-                <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)' }}>YoloFare Pro unlocks everything · ₹999/mo</div>
+                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>You're signed in â€” upgrade to see all {totalDeals} deals</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.55)' }}>YoloFare Pro unlocks everything Â· â‚¹999/mo</div>
               </div>
               <div className="banner-btns">
-                <Link href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '10px 20px', borderRadius: 100, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", textDecoration: 'none', display: 'inline-block', textAlign: 'center', whiteSpace: 'nowrap' }}>Upgrade to Pro · ₹999/mo</Link>
+                <Link href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '10px 20px', borderRadius: 100, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", textDecoration: 'none', display: 'inline-block', textAlign: 'center', whiteSpace: 'nowrap' }}>Upgrade to Pro Â· â‚¹999/mo</Link>
               </div>
             </div>
           </div>
         )}
 
-        {/* Banner — Pro member */}
+        {/* Banner â€” Pro member */}
         {user && isPro && (
           <div style={{ background: 'rgba(76,175,80,0.06)', border: '0.5px solid rgba(76,175,80,0.2)', borderRadius: 16, padding: '14px 20px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 18 }}>⭐</span>
+            <span style={{ fontSize: 18 }}>â­</span>
             <div>
-              <span style={{ fontSize: 14, fontWeight: 500 }}>Pro member — all {totalDeals} deals unlocked</span>
+              <span style={{ fontSize: 14, fontWeight: 500 }}>Pro member â€” all {totalDeals} deals unlocked</span>
               <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.5)', marginLeft: 12 }}>
-                <Link href="/preferences" style={{ color: '#FF8060', textDecoration: 'none' }}>Update your preferences →</Link>
+                <Link href="/preferences" style={{ color: '#FF8060', textDecoration: 'none' }}>Update your preferences â†’</Link>
               </span>
             </div>
           </div>
@@ -232,7 +233,7 @@ export default function DealsPage() {
           <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(255,245,236,0.3)' }}>Loading deals...</div>
         ) : visibleDeals.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>🔍</div>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>ðŸ”</div>
             <div style={{ color: 'rgba(255,245,236,0.5)', fontSize: 15, marginBottom: 8 }}>No deals match your filters.</div>
             <div style={{ color: 'rgba(255,245,236,0.3)', fontSize: 13 }}>Try changing the region or cabin class.</div>
           </div>
@@ -251,18 +252,18 @@ export default function DealsPage() {
                   </div>
                   <div style={{ padding: '14px 16px 16px' }}>
                     <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
-                      {deal.origin_code} → {deal.dest_code} · {deal.travel_dates}
+                      {deal.origin_code} â†’ {deal.dest_code} Â· {deal.travel_dates}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 14 }}>
-                      <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 700, letterSpacing: -1 }}>₹{deal.deal_price?.toLocaleString('en-IN')}</span>
-                      <span style={{ fontSize: 14, color: 'rgba(255,245,236,0.3)', textDecoration: 'line-through' }}>₹{deal.regular_price?.toLocaleString('en-IN')}</span>
+                      <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 700, letterSpacing: -1 }}>â‚¹{deal.deal_price?.toLocaleString('en-IN')}</span>
+                      <span style={{ fontSize: 14, color: 'rgba(255,245,236,0.3)', textDecoration: 'line-through' }}>â‚¹{deal.regular_price?.toLocaleString('en-IN')}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '0.5px solid rgba(255,255,255,0.12)' }}>
                       <span style={{ fontSize: 12, color: 'rgba(255,245,236,0.55)', display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: deal.stops === 0 ? '#4CAF50' : '#FF8060', display: 'inline-block' }} />
                         {deal.stops === 0 ? 'Non-stop' : `${deal.stops} stop`}
                       </span>
-                      <Link href={`/deals/${deal.id}`} style={{ fontSize: 13, fontWeight: 600, color: '#FF5C3A', textDecoration: 'none' }}>View deal →</Link>
+                      <Link href={`/deals/${deal.id}`} style={{ fontSize: 13, fontWeight: 600, color: '#FF5C3A', textDecoration: 'none' }}>View deal â†’</Link>
                     </div>
                   </div>
                 </div>
@@ -272,15 +273,15 @@ export default function DealsPage() {
             {/* Upgrade nudge for non-Pro */}
             {!isPro && (
               <div style={{ marginTop: 40, background: 'linear-gradient(135deg, rgba(255,92,58,0.08) 0%, rgba(255,92,58,0.04) 100%)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 24, padding: '32px', textAlign: 'center' }}>
-                <div style={{ fontSize: 28, marginBottom: 12 }}>🔒</div>
+                <div style={{ fontSize: 28, marginBottom: 12 }}>ðŸ”’</div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 8, letterSpacing: -0.5 }}>
                   {totalDeals - freeDeals.length} more deals locked
                 </div>
                 <div style={{ fontSize: 14, color: 'rgba(255,245,236,0.5)', marginBottom: 24, fontWeight: 300 }}>
-                  Europe, Middle East, Business & First Class deals — all unlocked with Pro.
+                  Europe, Middle East, Business & First Class deals â€” all unlocked with Pro.
                 </div>
                 <Link href="/pricing" style={{ background: '#FF5C3A', color: 'white', padding: '14px 36px', borderRadius: 100, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif", display: 'inline-block' }}>
-                  Unlock all deals · ₹999/mo →
+                  Unlock all deals Â· â‚¹999/mo â†’
                 </Link>
               </div>
             )}
@@ -290,3 +291,4 @@ export default function DealsPage() {
     </div>
   )
 }
+
