@@ -1,12 +1,13 @@
+﻿import FacebookPixel from '../components/FacebookPixel'
 import './globals.css'
 
 export const metadata = {
   metadataBase: new URL('https://www.yolofare.com'),
   title: {
-    default: 'YoloFare — Cheap International Flights from India | Flight Deals',
+    default: 'YoloFare â€” Cheap International Flights from India | Flight Deals',
     template: '%s | YoloFare',
   },
-  description: 'YoloFare finds cheap international flight deals from Delhi, Mumbai, Bangalore, Hyderabad & Chennai. Save ₹18,000+ per trip. Economy, Business & First Class deals updated daily.',
+  description: 'YoloFare finds cheap international flight deals from Delhi, Mumbai, Bangalore, Hyderabad & Chennai. Save â‚¹18,000+ per trip. Economy, Business & First Class deals updated daily.',
   keywords: [
     'cheap international flights from India',
     'flight deals from Delhi',
@@ -39,21 +40,21 @@ export const metadata = {
     locale: 'en_IN',
     url: 'https://www.yolofare.com',
     siteName: 'YoloFare',
-    title: 'YoloFare — Cheap International Flights from India',
-    description: 'Handpicked international flight deals from Delhi, Mumbai, Bangalore, Hyderabad & Chennai. Save 40–70% on Economy, Business & First Class.',
+    title: 'YoloFare â€” Cheap International Flights from India',
+    description: 'Handpicked international flight deals from Delhi, Mumbai, Bangalore, Hyderabad & Chennai. Save 40â€“70% on Economy, Business & First Class.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'YoloFare — Cheap International Flight Deals from India',
+        alt: 'YoloFare â€” Cheap International Flight Deals from India',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'YoloFare — Cheap International Flights from India',
-    description: 'Handpicked flight deals from Delhi, Mumbai, Bangalore & more. Save ₹18,000+ per trip.',
+    title: 'YoloFare â€” Cheap International Flights from India',
+    description: 'Handpicked flight deals from Delhi, Mumbai, Bangalore & more. Save â‚¹18,000+ per trip.',
     images: ['/og-image.png'],
     creator: '@yolofare',
   },
@@ -130,9 +131,11 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <FacebookPixel />{children}</body>
     </html>
   )
 }
+
 
 
