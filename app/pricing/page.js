@@ -54,7 +54,7 @@ export default function PricingPage() {
         amount,
         currency:    'INR',
         name:        'YoloFare',
-        description: 'YoloFare Pro â€” Monthly',
+        description: 'YoloFare Pro — Monthly',
         order_id:    orderId,
         prefill:     { email: user.email },
         theme:       { color: '#FF5C3A' },
@@ -108,15 +108,15 @@ export default function PricingPage() {
   }
 
   const freeFeats = [
-    { icon: 'Â·', text: '3 deals visible (teaser only)' },
-    { icon: 'Â·', text: 'South East Asia only' },
-    { icon: 'Â·', text: 'Economy class only' },
-    { icon: 'Â·', text: 'No deal alerts' },
-    { icon: 'Â·', text: 'No preferences profile' },
+    { icon: '·', text: '3 deals visible (teaser only)' },
+    { icon: '·', text: 'South East Asia only' },
+    { icon: '·', text: 'Economy class only' },
+    { icon: '·', text: 'No deal alerts' },
+    { icon: '·', text: 'No preferences profile' },
   ]
 
   const proFeats = [
-    { text: 'All deals unlocked â€” every region, every class' },
+    { text: 'All deals unlocked — every region, every class' },
     { text: 'Instant alerts via email + WhatsApp', tag: 'NEW' },
     { text: 'Personalised to your wishlist & home city' },
     { text: 'Error fares & flash deals first (before they vanish)' },
@@ -148,7 +148,7 @@ export default function PricingPage() {
             One trip pays for<br/><em style={{ fontStyle: 'italic', fontFamily: 'Georgia, serif', fontWeight: 400, color: '#FF5C3A' }}>18 months</em> of Pro.
           </h1>
           <p style={{ fontSize: 16, color: 'rgba(255,245,236,0.45)', fontWeight: 300 }}>
-            Avg. member saves â‚¹18,000+ per trip. At â‚¹999/mo that's an 18x ROI.
+            Avg. member saves ₹18,000+ per trip. At ₹999/mo that's an 18x ROI.
           </p>
         </div>
 
@@ -157,12 +157,12 @@ export default function PricingPage() {
           {/* FREE */}
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: 28 }}>
             <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Free</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, marginBottom: 4 }}>â‚¹0</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Forever free Â· No card needed</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800, marginBottom: 4 }}>₹0</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Forever free · No card needed</div>
 
             {freeFeats.map(f => (
               <div key={f.text} style={{ fontSize: 14, color: 'rgba(255,245,236,0.38)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span style={{ color: 'rgba(255,245,236,0.18)', fontSize: 18, lineHeight: 1.2, flexShrink: 0 }}>Â·</span>
+                <span style={{ color: 'rgba(255,245,236,0.18)', fontSize: 18, lineHeight: 1.2, flexShrink: 0 }}>·</span>
                 {f.text}
               </div>
             ))}
@@ -171,7 +171,7 @@ export default function PricingPage() {
               Browse free deals
             </Link>
             <div style={{ textAlign: 'center', fontSize: 11, color: 'rgba(255,92,58,0.5)', marginTop: 10 }}>
-              Deals expire fast â€” free users often miss out
+              Deals expire fast — free users often miss out
             </div>
           </div>
 
@@ -180,14 +180,14 @@ export default function PricingPage() {
             <div style={{ position: 'absolute', top: 0, right: 0, background: '#FF5C3A', color: 'white', fontSize: 10, fontWeight: 700, padding: '6px 16px', borderRadius: '0 24px 0 12px', letterSpacing: 0.5 }}>MOST POPULAR</div>
             <div style={{ fontSize: 11, color: 'rgba(255,92,58,0.8)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Pro</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-              <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800 }}>â‚¹999</span>
+              <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 40, fontWeight: 800 }}>₹999</span>
               <span style={{ fontSize: 14, color: 'rgba(255,245,236,0.4)' }}>/month</span>
             </div>
-            <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Cancel anytime Â· No hidden fees</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Cancel anytime · No hidden fees</div>
 
             {proFeats.map(f => (
               <div key={f.text} style={{ fontSize: 14, color: 'rgba(255,245,236,0.85)', marginBottom: 11, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span style={{ color: '#FF5C3A', fontWeight: 700, flexShrink: 0, lineHeight: 1.4 }}>âœ“</span>
+                <span style={{ color: '#FF5C3A', fontWeight: 700, flexShrink: 0, lineHeight: 1.4 }}>✓</span>
                 <span>
                   {f.text}
                   {f.tag && (
@@ -203,17 +203,17 @@ export default function PricingPage() {
               onClick={handleUpgrade}
               disabled={loading}
               style={{ width: '100%', marginTop: 24, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}>
-              {loading ? `â³ ${status || 'Loading...'}` : user ? 'Upgrade to Pro â†’' : 'Sign in to upgrade â†’'}
+              {loading ? `⏳ ${status || 'Loading...'}` : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
             </button>
 
             <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,245,236,0.25)', marginTop: 10 }}>
-              Secured by Razorpay Â· UPI, Cards, NetBanking
+              Secured by Razorpay · UPI, Cards, NetBanking
             </div>
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 18, overflow: 'hidden' }}>
-          {[['â‚¹999','Monthly cost'],['â‚¹18,000+','Avg. savings per trip'],['18x','ROI on first booking']].map(([val,label],i) => (
+          {[['₹999','Monthly cost'],['₹18,000+','Avg. savings per trip'],['18x','ROI on first booking']].map(([val,label],i) => (
             <div key={label} style={{ padding: '20px', textAlign: 'center', borderRight: i < 2 ? '0.5px solid rgba(255,255,255,0.08)' : 'none' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 700, color: '#FF5C3A' }}>{val}</div>
               <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.35)', marginTop: 4 }}>{label}</div>
@@ -224,6 +224,4 @@ export default function PricingPage() {
     </div>
   )
 }
-
-
 
