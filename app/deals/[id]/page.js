@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import Link from 'next/link'
+import { trackViewContent, trackBookingClick } from '../../../lib/pixel.js'
 
 export default function DealPage({ params }) {
   const [deal, setDeal] = useState(null)
@@ -26,7 +27,10 @@ export default function DealPage({ params }) {
       .select('*')
       .eq('id', id)
       .single()
-    if (data) setDeal(data)
+    if (data) {
+      setDeal(data)
+      trackViewContent(data.destination, data.deal_price)
+    }
     setLoading(false)
   }
 
@@ -145,6 +149,7 @@ export default function DealPage({ params }) {
             target="_blank"
             rel="noopener noreferrer"
             className="book-btn"
+            onClick={() => trackBookingClick(deal.destination, deal.deal_price)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', background: '#FF5C3A', color: 'white', padding: '18px 28px', borderRadius: 100, fontSize: 17, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif', letterSpacing: -0.3", boxSizing: 'border-box', textAlign: 'center' }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -229,6 +234,7 @@ export default function DealPage({ params }) {
           target="_blank"
           rel="noopener noreferrer"
           className="book-btn"
+          onClick={() => trackBookingClick(deal.destination, deal.deal_price)}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', background: '#FF5C3A', color: 'white', padding: '18px 28px', borderRadius: 100, fontSize: 17, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif", boxSizing: 'border-box', textAlign: 'center', marginBottom: 16 }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
