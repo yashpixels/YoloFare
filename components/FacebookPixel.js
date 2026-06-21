@@ -1,16 +1,17 @@
-'use client'
-
+﻿'use client'
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
-import { pageview } from '../lib/pixel.js'
+import { useEffect, useState } from 'react'
 
 export default function FacebookPixel() {
   const pathname = usePathname()
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    pageview()
-  }, [pathname])
+    if (loaded && window.fbq) {
+      window.fbq('track', 'PageView')
+    }
+  }, [pathname, loaded])
 
   const pixelScript = [
     '!function(f,b,e,v,n,t,s)',
@@ -21,8 +22,7 @@ export default function FacebookPixel() {
     't.src=v;s=b.getElementsByTagName(e)[0];',
     's.parentNode.insertBefore(t,s)}(window,document,"script",',
     '"https://connect.facebook.net/en_US/fbevents.js");',
-    'fbq("init","2564814423972147");',
-    'fbq("track","PageView");'
+    'fbq("init","2564814423972147");'
   ].join('')
 
   return (
@@ -30,7 +30,7 @@ export default function FacebookPixel() {
       id="fb-pixel"
       strategy="afterInteractive"
       dangerouslySetInnerHTML={{ __html: pixelScript }}
+      onLoad={() => setLoaded(true)}
     />
   )
 }
-
