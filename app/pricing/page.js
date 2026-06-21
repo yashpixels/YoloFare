@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
-import { trackProPurchase } from '../../lib/pixel.js'
+import { trackProPurchase, trackAddToCart } from '../../lib/pixel.js'
 
 function loadRazorpay() {
   return new Promise((resolve) => {
@@ -32,6 +32,7 @@ export default function PricingPage() {
   async function handleUpgrade() {
     if (!user) { router.push('/login?redirect=/pricing'); return }
     setLoading(true)
+    trackAddToCart()
     setStatus('Loading checkout...')
 
     try {
@@ -224,4 +225,6 @@ export default function PricingPage() {
     </div>
   )
 }
+
+
 
