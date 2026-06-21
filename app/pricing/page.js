@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase'
-import { trackProPurchase, trackAddToCart } from '../../lib/pixel.js'
+import { trackProPurchase, trackAddToCart, trackInitiateCheckout } from '../../lib/pixel.js'
 
 function loadRazorpay() {
   return new Promise((resolve) => {
@@ -99,6 +99,7 @@ export default function PricingPage() {
         setStatus('')
         alert('Payment failed: ' + resp.error.description)
       })
+      trackInitiateCheckout()
       rzp.open()
 
     } catch (err) {

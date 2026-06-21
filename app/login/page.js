@@ -1,5 +1,6 @@
 ﻿'use client'
 import { useState } from 'react'
+import { trackLead, trackCompleteRegistration } from '../../lib/pixel.js'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 
@@ -20,7 +21,7 @@ export default function LoginPage() {
       options: { emailRedirectTo: 'https://www.yolofare.com/deals' }
     })
     if (error) setError(error.message)
-    else setMessage('✅ Magic link sent! Check your email.')
+    else { setMessage('✅ Magic link sent! Check your email.'); trackLead(); }
     setLoading(false)
   }
 
@@ -30,7 +31,7 @@ export default function LoginPage() {
     if (authType === 'signup') {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) setError(error.message)
-      else setMessage('✅ Account created! Check your email to confirm, then sign in.')
+      else { setMessage('✅ Account created! Check your email to confirm, then sign in.'); trackCompleteRegistration(); }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError(error.message)
