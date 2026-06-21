@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
@@ -28,10 +28,9 @@ export default function FacebookPixel() {
   return (
     <Script
       id="fb-pixel"
-      strategy="lazyOnload"
+      strategy="afterInteractive"
       dangerouslySetInnerHTML={{ __html: pixelScript }}
     />
   )
 }
-
 
