@@ -29,6 +29,16 @@ export default function PricingPage() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Read Meta pixel cookies for CAPI deduplication
+  function getMetaCookies() {
+    if (typeof document === 'undefined') return {}
+    const get = (name) => {
+      const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'))
+      return m ? decodeURIComponent(m[1]) : undefined
+    }
+    return { fbc: get('_fbc'), fbp: get('_fbp') }
+  }
+
   async function handleUpgrade() {
     if (!user) { router.push('/login?redirect=/pricing'); return }
     setLoading(true)
@@ -40,12 +50,13 @@ export default function PricingPage() {
       if (!loaded) throw new Error('Razorpay failed to load.')
 
       setStatus('Creating order...')
+      const { fbc, fbp } = getMetaCookies()
       const res = await fetch('/api/razorpay-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({ userId: user.id, email: user.email, fbc, fbp }),
       })
-      const { orderId, amount, error: orderError } = await res.json()
+      const { orderId, amount, eventId: checkoutEventId, error: orderError } = await res.json()
       if (orderError) throw new Error(orderError)
 
       setStatus('Opening checkout...')
@@ -63,6 +74,8 @@ export default function PricingPage() {
         handler: async function (response) {
           setStatus('Verifying payment...')
           try {
+            // Generate purchase event_id on client so both browser pixel + CAPI use same ID
+            const purchaseEventId = crypto.randomUUID()
             const verifyRes = await fetch('/api/verify-payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -71,12 +84,14 @@ export default function PricingPage() {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature:  response.razorpay_signature,
                 userId:              user.id,
+                fbc, fbp,
+                purchaseEventId,
               }),
             })
             const data = await verifyRes.json()
             if (data.success) {
               setStatus('Payment confirmed! Redirecting...')
-              trackProPurchase()
+              trackProPurchase(purchaseEventId)
               window.location.href = '/preferences?new=true'
             } else {
               throw new Error(data.error || 'Verification failed')
@@ -99,7 +114,8 @@ export default function PricingPage() {
         setStatus('')
         alert('Payment failed: ' + resp.error.description)
       })
-      trackInitiateCheckout()
+      // Use server's eventId so CAPI InitiateCheckout and browser pixel are deduplicated
+      trackInitiateCheckout(checkoutEventId)
       rzp.open()
 
     } catch (err) {
