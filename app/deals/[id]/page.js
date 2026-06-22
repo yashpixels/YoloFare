@@ -150,7 +150,7 @@ export default function DealPage({ params }) {
             rel="noopener noreferrer"
             className="book-btn"
             onClick={() => trackBookingClick(deal.destination, deal.deal_price)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', background: '#FF5C3A', color: 'white', padding: '18px 28px', borderRadius: 100, fontSize: 17, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif', letterSpacing: -0.3", boxSizing: 'border-box', textAlign: 'center' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', background: '#FF5C3A', color: 'white', padding: '18px 28px', borderRadius: 100, fontSize: 17, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3, boxSizing: 'border-box', textAlign: 'center' }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="white"/>
