@@ -37,5 +37,11 @@ export default async function PricingLayout({ children }) {
     }).catch(() => {})
   } catch (_) {}
 
-  return children
+  return (
+    <>
+      {/* Preload Razorpay so it's ready before the user clicks Upgrade */}
+      <link rel="preload" href="https://checkout.razorpay.com/v1/checkout.js" as="script" />
+      {children}
+    </>
+  )
 }

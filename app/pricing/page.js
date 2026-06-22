@@ -1,151 +1,27 @@
-﻿'use client'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '../../lib/supabase'
-import { trackProPurchase, trackAddToCart, trackInitiateCheckout } from '../../lib/pixel.js'
+import { NavUser, UpgradeButton } from '../../components/PricingUpgrade'
 
-function loadRazorpay() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) { resolve(true); return }
-    const script = document.createElement('script')
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-    script.onload  = () => resolve(true)
-    script.onerror = () => resolve(false)
-    document.body.appendChild(script)
-  })
-}
+const freeFeats = [
+  '3 deals visible (teaser only)',
+  'South East Asia only',
+  'Economy class only',
+  'No deal alerts',
+  'No preferences profile',
+]
+
+const proFeats = [
+  { text: 'All deals unlocked — every region, every class' },
+  { text: 'Instant alerts via email + WhatsApp', tag: 'NEW' },
+  { text: 'Personalised to your wishlist & home city' },
+  { text: 'Error fares & flash deals first (before they vanish)' },
+  { text: 'Business & First Class deals included' },
+]
 
 export default function PricingPage() {
-  const router    = useRouter()
-  const [user, setUser]       = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [status, setStatus]   = useState('')
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
-    loadRazorpay()
-    return () => subscription.unsubscribe()
-  }, [])
-
-  // Read Meta pixel cookies for CAPI deduplication
-  function getMetaCookies() {
-    if (typeof document === 'undefined') return {}
-    const get = (name) => {
-      const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'))
-      return m ? decodeURIComponent(m[1]) : undefined
-    }
-    return { fbc: get('_fbc'), fbp: get('_fbp') }
-  }
-
-  async function handleUpgrade() {
-    if (!user) { router.push('/login?redirect=/pricing'); return }
-    setLoading(true)
-    trackAddToCart()
-    setStatus('Loading checkout...')
-
-    try {
-      const loaded = await loadRazorpay()
-      if (!loaded) throw new Error('Razorpay failed to load.')
-
-      setStatus('Creating order...')
-      const { fbc, fbp } = getMetaCookies()
-      const res = await fetch('/api/razorpay-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, email: user.email, fbc, fbp }),
-      })
-      const { orderId, amount, eventId: checkoutEventId, error: orderError } = await res.json()
-      if (orderError) throw new Error(orderError)
-
-      setStatus('Opening checkout...')
-
-      const options = {
-        key:         process.env.NEXT_PUBLIC_RAZORPAY_KEY,
-        amount,
-        currency:    'INR',
-        name:        'YoloFare',
-        description: 'YoloFare Pro — Monthly',
-        order_id:    orderId,
-        prefill:     { email: user.email },
-        theme:       { color: '#FF5C3A' },
-
-        handler: async function (response) {
-          setStatus('Verifying payment...')
-          try {
-            // Generate purchase event_id on client so both browser pixel + CAPI use same ID
-            const purchaseEventId = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-              (c ^ (Math.random() * 16 >> c / 4)).toString(16)
-            )
-            const verifyRes = await fetch('/api/verify-payment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id:   response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature:  response.razorpay_signature,
-                userId:              user.id,
-                fbc, fbp,
-                purchaseEventId,
-              }),
-            })
-            const data = await verifyRes.json()
-            if (data.success) {
-              setStatus('Payment confirmed! Redirecting...')
-              trackProPurchase(purchaseEventId)
-              window.location.href = '/preferences?new=true'
-            } else {
-              throw new Error(data.error || 'Verification failed')
-            }
-          } catch (err) {
-            setStatus('')
-            setLoading(false)
-            alert('Payment verification failed: ' + err.message)
-          }
-        },
-
-        modal: {
-          ondismiss: () => { setLoading(false); setStatus('') }
-        },
-      }
-
-      const rzp = new window.Razorpay(options)
-      rzp.on('payment.failed', (resp) => {
-        setLoading(false)
-        setStatus('')
-        alert('Payment failed: ' + resp.error.description)
-      })
-      // Use server's eventId so CAPI InitiateCheckout and browser pixel are deduplicated
-      trackInitiateCheckout(checkoutEventId)
-      rzp.open()
-
-    } catch (err) {
-      setLoading(false)
-      setStatus('')
-      alert('Error: ' + err.message)
-    }
-  }
-
-  const freeFeats = [
-    { icon: '·', text: '3 deals visible (teaser only)' },
-    { icon: '·', text: 'South East Asia only' },
-    { icon: '·', text: 'Economy class only' },
-    { icon: '·', text: 'No deal alerts' },
-    { icon: '·', text: 'No preferences profile' },
-  ]
-
-  const proFeats = [
-    { text: 'All deals unlocked — every region, every class' },
-    { text: 'Instant alerts via email + WhatsApp', tag: 'NEW' },
-    { text: 'Personalised to your wishlist & home city' },
-    { text: 'Error fares & flash deals first (before they vanish)' },
-    { text: 'Business & First Class deals included' },
-  ]
-
   return (
     <div style={{ minHeight: '100vh', background: '#0D0A08', color: '#FFF5EC', fontFamily: "'DM Sans', sans-serif" }}>
-<div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, #FF5C3A 0%, transparent 70%)', filter: 'blur(100px)', opacity: 0.15, top: -150, right: -100 }} />
       </div>
 
@@ -153,10 +29,7 @@ export default function PricingPage() {
         <Link href="/" style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800, color: '#FFF5EC', textDecoration: 'none' }}>
           Yolo<span style={{ color: '#FF5C3A' }}>Fare</span>
         </Link>
-        {user
-          ? <span style={{ fontSize: 13, color: 'rgba(255,245,236,0.5)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</span>
-          : <Link href="/login" style={{ fontSize: 14, color: 'rgba(255,245,236,0.55)', textDecoration: 'none' }}>Login</Link>
-        }
+        <NavUser />
       </nav>
 
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '64px 24px 80px', position: 'relative', zIndex: 1 }}>
@@ -179,9 +52,9 @@ export default function PricingPage() {
             <div style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', marginBottom: 24 }}>Forever free · No card needed</div>
 
             {freeFeats.map(f => (
-              <div key={f.text} style={{ fontSize: 14, color: 'rgba(255,245,236,0.38)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <div key={f} style={{ fontSize: 14, color: 'rgba(255,245,236,0.38)', marginBottom: 10, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 <span style={{ color: 'rgba(255,245,236,0.18)', fontSize: 18, lineHeight: 1.2, flexShrink: 0 }}>·</span>
-                {f.text}
+                {f}
               </div>
             ))}
 
@@ -217,16 +90,8 @@ export default function PricingPage() {
               </div>
             ))}
 
-            <button
-              onClick={handleUpgrade}
-              disabled={loading}
-              style={{ width: '100%', marginTop: 24, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}>
-              {loading ? `⏳ ${status || 'Loading...'}` : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
-            </button>
-
-            <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,245,236,0.25)', marginTop: 10 }}>
-              Secured by Razorpay · UPI, Cards, NetBanking
-            </div>
+            {/* Only this part is client-rendered */}
+            <UpgradeButton />
           </div>
         </div>
 
@@ -242,6 +107,3 @@ export default function PricingPage() {
     </div>
   )
 }
-
-
-
