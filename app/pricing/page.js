@@ -75,7 +75,9 @@ export default function PricingPage() {
           setStatus('Verifying payment...')
           try {
             // Generate purchase event_id on client so both browser pixel + CAPI use same ID
-            const purchaseEventId = crypto.randomUUID()
+            const purchaseEventId = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+              (c ^ (Math.random() * 16 >> c / 4)).toString(16)
+            )
             const verifyRes = await fetch('/api/verify-payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
