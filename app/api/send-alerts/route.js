@@ -42,8 +42,8 @@ function buildEmailHtml({ deals }) {
   const deal = deals[0]
   return {
     subject: isSingle
-      ? ` New deal: ${deal.origin_code} &rarr; ${deal.dest_code} from &#8377;${deal.deal_price?.toLocaleString('en-IN')} (${deal.savings_pct}% off)`
-      : ` ${deals.length} new deals just dropped &mdash; YoloFare Pro`,
+      ? `New deal: ${deal.origin_code} -> ${deal.dest_code} from Rs.${deal.deal_price?.toLocaleString('en-IN')} (${deal.savings_pct}% off) - YoloFare Pro`
+      : `${deals.length} new deals just dropped - YoloFare Pro`,
     html: `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
 <body style="margin:0;padding:0;background:#0D0A08;font-family:'DM Sans',-apple-system,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D0A08;padding:40px 20px;">
