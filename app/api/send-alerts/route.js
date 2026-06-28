@@ -16,21 +16,21 @@ function buildEmailHtml({ deals }) {
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td>
-                <span style="font-size:11px;color:rgba(255,245,236,0.4);letter-spacing:1.5px;text-transform:uppercase;">${deal.origin_code} â†’ ${deal.dest_code}</span><br/>
+                <span style="font-size:11px;color:rgba(255,245,236,0.4);letter-spacing:1.5px;text-transform:uppercase;">${deal.origin_code} &rarr; ${deal.dest_code}</span><br/>
                 <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#FFF5EC;">${deal.destination}</span><br/>
-                <span style="font-size:12px;color:rgba(255,245,236,0.5);">${deal.airline} Â· ${deal.cabin_class} Â· ${deal.stops===0?'Non-stop':'1 stop'} Â· ${deal.travel_dates}</span>
+                <span style="font-size:12px;color:rgba(255,245,236,0.5);">${deal.airline} &middot; ${deal.cabin_class} &middot; ${deal.stops===0?'Non-stop':'1 stop'} &middot; ${deal.travel_dates}</span>
               </td>
               <td style="text-align:right;vertical-align:top;">
                 <span style="background:#FF5C3A;color:white;font-size:12px;font-weight:700;padding:5px 12px;border-radius:100px;">${deal.savings_pct}% off</span><br/><br/>
-                <span style="font-size:26px;font-weight:800;color:#FF5C3A;">â‚¹${deal.deal_price?.toLocaleString('en-IN')}</span><br/>
-                <span style="font-size:13px;color:rgba(255,245,236,0.35);text-decoration:line-through;">â‚¹${deal.regular_price?.toLocaleString('en-IN')}</span>
+                <span style="font-size:26px;font-weight:800;color:#FF5C3A;">&#8377;${deal.deal_price?.toLocaleString('en-IN')}</span><br/>
+                <span style="font-size:13px;color:rgba(255,245,236,0.35);text-decoration:line-through;">&#8377;${deal.regular_price?.toLocaleString('en-IN')}</span>
               </td>
             </tr>
           </table>
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
             <tr>
-              <td><a href="https://yolofare.com/deals/${deal.id}" style="background:#FF5C3A;color:white;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;text-decoration:none;display:inline-block;">View deal â†’</a></td>
-              <td style="text-align:right;"><a href="${deal.booking_url||`https://www.google.com/travel/flights?q=flights+from+${deal.origin_code}+to+${deal.dest_code}`}" style="color:rgba(255,245,236,0.5);font-size:12px;text-decoration:none;">Book on Google Flights â†—</a></td>
+              <td><a href="https://yolofare.com/deals/${deal.id}" style="background:#FF5C3A;color:white;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;text-decoration:none;display:inline-block;">View deal &rarr;</a></td>
+              <td style="text-align:right;"><a href="${deal.booking_url||`https://www.google.com/travel/flights?q=flights+from+${deal.origin_code}+to+${deal.dest_code}`}" style="color:rgba(255,245,236,0.5);font-size:12px;text-decoration:none;">Book on Google Flights &#8599;</a></td>
             </tr>
           </table>
         </td></tr>
@@ -42,8 +42,8 @@ function buildEmailHtml({ deals }) {
   const deal = deals[0]
   return {
     subject: isSingle
-      ? `âœˆï¸ New deal: ${deal.origin_code} â†’ ${deal.dest_code} from â‚¹${deal.deal_price?.toLocaleString('en-IN')} (${deal.savings_pct}% off)`
-      : `âœˆï¸ ${deals.length} new deals just dropped â€” YoloFare Pro`,
+      ? ` New deal: ${deal.origin_code} &rarr; ${deal.dest_code} from &#8377;${deal.deal_price?.toLocaleString('en-IN')} (${deal.savings_pct}% off)`
+      : ` ${deals.length} new deals just dropped &mdash; YoloFare Pro`,
     html: `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
 <body style="margin:0;padding:0;background:#0D0A08;font-family:'DM Sans',-apple-system,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D0A08;padding:40px 20px;">
@@ -51,15 +51,15 @@ function buildEmailHtml({ deals }) {
   <tr><td style="padding:0 0 32px 0;text-align:center;"><span style="font-size:22px;font-weight:800;color:#FFF5EC;">Yolo<span style="color:#FF5C3A;">Fare</span></span></td></tr>
   <tr><td style="background:linear-gradient(135deg,rgba(255,92,58,0.12) 0%,rgba(255,92,58,0.04) 100%);border:1px solid rgba(255,92,58,0.25);border-radius:20px;padding:32px;text-align:center;">
     <p style="margin:0 0 8px 0;font-size:12px;color:rgba(255,245,236,0.4);letter-spacing:2px;text-transform:uppercase;">Pro Member Alert</p>
-    <h1 style="margin:0 0 12px 0;font-size:26px;font-weight:800;color:#FFF5EC;letter-spacing:-1px;line-height:1.1;">âœˆï¸ ${isSingle?`New deal just dropped`:`${deals.length} new deals just dropped`}</h1>
-    <p style="margin:0;font-size:15px;color:rgba(255,245,236,0.55);font-weight:300;">${isSingle?`${deal.destination} Â· ${deal.cabin_class} Â· Act fast`:`${deals.length} fresh deals Â· Book fast, deals expire`}</p>
+    <h1 style="margin:0 0 12px 0;font-size:26px;font-weight:800;color:#FFF5EC;letter-spacing:-1px;line-height:1.1;"> ${isSingle?`New deal just dropped`:`${deals.length} new deals just dropped`}</h1>
+    <p style="margin:0;font-size:15px;color:rgba(255,245,236,0.55);font-weight:300;">${isSingle?`${deal.destination} &middot; ${deal.cabin_class} &middot; Act fast`:`${deals.length} fresh deals &middot; Book fast, deals expire`}</p>
   </td></tr>
   <tr><td style="padding:24px 0 8px 0;"><p style="margin:0;font-size:11px;color:rgba(255,245,236,0.3);letter-spacing:2px;text-transform:uppercase;">${isSingle?'New deal':"Today's deals"}</p></td></tr>
   ${dealsHtml}
-  <tr><td style="padding:8px 0 32px 0;text-align:center;"><a href="https://yolofare.com/deals" style="background:#FF5C3A;color:white;padding:16px 40px;border-radius:100px;font-size:16px;font-weight:700;text-decoration:none;display:inline-block;">View all deals â†’</a></td></tr>
+  <tr><td style="padding:8px 0 32px 0;text-align:center;"><a href="https://yolofare.com/deals" style="background:#FF5C3A;color:white;padding:16px 40px;border-radius:100px;font-size:16px;font-weight:700;text-decoration:none;display:inline-block;">View all deals &rarr;</a></td></tr>
   <tr><td style="border-top:1px solid rgba(255,255,255,0.08);padding:24px 0 0 0;text-align:center;">
     <p style="margin:0 0 8px 0;font-size:12px;color:rgba(255,245,236,0.25);">You're receiving this as a YoloFare Pro member.</p>
-    <p style="margin:0;font-size:12px;color:rgba(255,245,236,0.2);">Â© 2026 YoloFare Â· <a href="https://yolofare.com/preferences" style="color:rgba(255,92,58,0.6);text-decoration:none;">Update preferences</a></p>
+    <p style="margin:0;font-size:12px;color:rgba(255,245,236,0.2);">&copy; 2026 YoloFare &middot; <a href="https://yolofare.com/preferences" style="color:rgba(255,92,58,0.6);text-decoration:none;">Update preferences</a></p>
   </td></tr>
 </table></td></tr></table></body></html>`
   }
@@ -100,7 +100,7 @@ export async function POST(request) {
     const { data: { users } } = await supabase.auth.admin.listUsers()
     const proUsers = users.filter(u => userIds.includes(u.id))
 
-    // â”€â”€ Filter by preferences â”€â”€
+    // -- Filter by preferences --
     // A subscriber gets the alert if:
     // 1. They have no preferred_destinations set (empty = all deals)
     // 2. OR their preferred_destinations includes this deal's dest_code
@@ -161,11 +161,4 @@ export async function POST(request) {
       whatsappSent: whatsappResults.filter(r => r.success).length,
       totalSubscribers: proUsers.length,
       matchedSubscribers: emailResults.length,
-      dealName: `${deal.origin_code} â†’ ${deal.dest_code} Â· ${deal.destination}`,
-    })
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 })
-  }
-}
-
-
+      dealName: 
