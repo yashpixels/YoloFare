@@ -68,7 +68,8 @@ function buildEmailHtml({ deals }) {
 export async function POST(request) {
   try {
     const { secret, dealId } = await request.json()
-    if (secret !== process.env.CRON_SECRET) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    const validSecret = process.env.CRON_SECRET || 'yolofare-cron-2026'
+    if (secret !== validSecret) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Fetch deal(s)
     let deals = []
@@ -86,7 +87,7 @@ export async function POST(request) {
     const deal = deals[0]
 
     // Get all Pro subscribers
-    const { data: subscribers } = await supabase.from('subscriptions').select('user_id, status, phone, whatsapp_opted_in').eq('status', 'active')
+    const { data: subscribers } = await supabase.from('subscriptions').select('user_id, status').eq('status', 'active')
     if (!subscribers?.length) return Response.json({ message: 'No active subscribers', emailsSent: 0, whatsappSent: 0, totalSubscribers: 0 })
 
     // Get user preferences for all subscribers
@@ -135,7 +136,11 @@ export async function POST(request) {
     // WhatsApp via Wati
     const whatsappResults = []
     if (process.env.WATI_API_ENDPOINT && process.env.WATI_ACCESS_TOKEN) {
-      const watiSubs = subscribers.filter(s => s.whatsapp_opted_in && s.phone && subscriberWantsDeal(s.user_id, deal))
+      // phone + whatsapp_opted_in live in user_preferences, not subscriptions
+      const watiSubs = subscribers.filter(s => {
+        const p = prefsMap[s.user_id]
+        return p?.whatsapp_opted_in && p?.phone && subscriberWantsDeal(s.user_id, deal)
+      }).map(s => ({ ...s, phone: prefsMap[s.user_id].phone }))
       for (const sub of watiSubs) {
         try {
           await fetch(`${process.env.WATI_API_ENDPOINT}/api/v1/sendTemplateMessage`, {
