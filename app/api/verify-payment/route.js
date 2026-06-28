@@ -10,8 +10,8 @@ const supabase = createClient(
 export async function POST(request) {
   try {
     const {
-      razorpay_order_id,
       razorpay_payment_id,
+      razorpay_subscription_id,
       razorpay_signature,
       userId,
       fbc,
@@ -19,8 +19,9 @@ export async function POST(request) {
       purchaseEventId,
     } = await request.json()
 
-    // Verify Razorpay signature
-    const body     = razorpay_order_id + '|' + razorpay_payment_id
+    // Verify Razorpay subscription signature
+    // Formula: HMAC-SHA256(payment_id + '|' + subscription_id, key_secret)
+    const body     = razorpay_payment_id + '|' + razorpay_subscription_id
     const expected = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body)
@@ -30,7 +31,7 @@ export async function POST(request) {
       return Response.json({ error: 'Invalid payment signature' }, { status: 400 })
     }
 
-    // Save subscription to Supabase
+    // Activate subscription — expires 1 month from now (webhook extends this on renewal)
     const expiresAt = new Date()
     expiresAt.setMonth(expiresAt.getMonth() + 1)
 
@@ -38,13 +39,13 @@ export async function POST(request) {
       user_id:                  userId,
       plan:                     'pro',
       status:                   'active',
-      razorpay_subscription_id: razorpay_payment_id,
+      razorpay_subscription_id: razorpay_subscription_id,
       expires_at:               expiresAt.toISOString(),
     }, { onConflict: 'user_id' })
 
     if (error) throw error
 
-    // Look up user email for better CAPI signal quality
+    // Look up user email for CAPI signal quality
     const { data: authData } = await supabase.auth.admin.getUserById(userId)
     const email = authData?.user?.email
 
@@ -58,7 +59,6 @@ export async function POST(request) {
       fbp: fbp || parseCookie(cookieHeader, '_fbp'),
     }
 
-    // Fire Purchase + Subscribe server-side — bypasses ad blockers
     await Promise.allSettled([
       sendCapiEvent({
         ...capiBase,

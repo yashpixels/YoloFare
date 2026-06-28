@@ -47,7 +47,6 @@ export function UpgradeButton() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
-    // Preload Razorpay in background so it's ready when clicked
     loadRazorpay()
     return () => subscription.unsubscribe()
   }, [])
@@ -62,29 +61,28 @@ export function UpgradeButton() {
       const loaded = await loadRazorpay()
       if (!loaded) throw new Error('Razorpay failed to load.')
 
-      setStatus('Creating order...')
+      setStatus('Creating subscription...')
       const { fbc, fbp } = getMetaCookies()
       const res = await fetch('/api/razorpay-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, email: user.email, fbc, fbp }),
       })
-      const { orderId, amount, eventId: checkoutEventId, error: orderError } = await res.json()
+      const { subscriptionId, eventId: checkoutEventId, error: orderError } = await res.json()
       if (orderError) throw new Error(orderError)
 
       setStatus('Opening checkout...')
 
       const options = {
-        key:         process.env.NEXT_PUBLIC_RAZORPAY_KEY,
-        amount,
-        currency:    'INR',
-        name:        'YoloFare',
-        description: 'YoloFare Pro — Monthly',
-        order_id:    orderId,
-        prefill:     { email: user.email },
-        theme:       { color: '#FF5C3A' },
+        key:             process.env.NEXT_PUBLIC_RAZORPAY_KEY,
+        subscription_id: subscriptionId,   // subscription flow, not order_id
+        name:            'YoloFare',
+        description:     'YoloFare Pro — Monthly',
+        prefill:         { email: user.email },
+        theme:           { color: '#FF5C3A' },
 
         handler: async function (response) {
+          // Subscription response: razorpay_payment_id, razorpay_subscription_id, razorpay_signature
           setStatus('Verifying payment...')
           try {
             const purchaseEventId = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
@@ -94,9 +92,9 @@ export function UpgradeButton() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                razorpay_order_id:   response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature:  response.razorpay_signature,
+                razorpay_payment_id:      response.razorpay_payment_id,
+                razorpay_subscription_id: response.razorpay_subscription_id,
+                razorpay_signature:       response.razorpay_signature,
                 userId: user.id,
                 fbc, fbp,
                 purchaseEventId,
@@ -140,10 +138,10 @@ export function UpgradeButton() {
         onClick={handleUpgrade}
         disabled={loading}
         style={{ width: '100%', marginTop: 24, background: loading ? 'rgba(255,92,58,0.5)' : '#FF5C3A', color: 'white', border: 'none', padding: '15px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}>
-        {loading ? `⏳ ${status || 'Loading...'}` : user ? 'Upgrade to Pro →' : 'Sign in to upgrade →'}
+        {loading ? `${status || 'Loading...'}` : user ? 'Upgrade to Pro' : 'Sign in to upgrade'}
       </button>
       <div style={{ textAlign: 'center', fontSize: 12, color: 'rgba(255,245,236,0.25)', marginTop: 10 }}>
-        Secured by Razorpay · UPI, Cards, NetBanking
+        Secured by Razorpay · Auto-renews monthly · Cancel anytime
       </div>
     </>
   )

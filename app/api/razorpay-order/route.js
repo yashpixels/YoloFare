@@ -8,54 +8,62 @@ export async function POST(request) {
 
     const keyId     = process.env.RAZORPAY_KEY_ID
     const keySecret = process.env.RAZORPAY_KEY_SECRET
-    const shortId   = userId.slice(-8)
-    const ts        = Date.now().toString(36)
-    const receipt   = `yf_${shortId}_${ts}`
+    const auth      = 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64')
+    const headers   = { 'Content-Type': 'application/json', 'Authorization': auth }
 
-    const response = await fetch('https://api.razorpay.com/v1/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64'),
-      },
+    // Get or create the monthly plan
+    let planId = process.env.RAZORPAY_PLAN_ID
+    if (!planId) {
+      const planRes = await fetch('https://api.razorpay.com/v1/plans', {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          period: 'monthly',
+          interval: 1,
+          item: {
+            name: 'YoloFare Pro',
+            amount: 99900,
+            currency: 'INR',
+            description: 'YoloFare Pro — Monthly subscription',
+          },
+        }),
+      })
+      const plan = await planRes.json()
+      if (!planRes.ok) throw new Error(plan.error?.description || 'Plan creation failed')
+      planId = plan.id
+      console.log('[YoloFare] Created Razorpay plan:', planId, '— Add RAZORPAY_PLAN_ID to Vercel env vars')
+    }
+
+    // Create the subscription
+    const subRes = await fetch('https://api.razorpay.com/v1/subscriptions', {
+      method: 'POST', headers,
       body: JSON.stringify({
-        amount:   99900,
-        currency: 'INR',
-        receipt,
-        notes: { userId, plan: 'pro' },
+        plan_id:         planId,
+        total_count:     120,   // 10 years — effectively unlimited
+        quantity:        1,
+        customer_notify: 1,
+        notes:           { userId, plan: 'pro' },
       }),
     })
+    const subscription = await subRes.json()
+    if (!subRes.ok) throw new Error(subscription.error?.description || 'Subscription creation failed')
 
-    const order = await response.json()
-    if (!response.ok) throw new Error(order.error?.description || 'Order creation failed')
-
-    // Generate event_id so the client can use the same ID in fbq() for deduplication
+    // Generate event_id for Meta deduplication
     const eventId = crypto.randomUUID()
 
-    // Fire server-side InitiateCheckout — bypasses ad blockers
+    // Fire server-side InitiateCheckout CAPI
     const cookieHeader = request.headers.get('cookie')
     sendCapiEvent({
-      eventName:      'InitiateCheckout',
+      eventName:  'InitiateCheckout',
       eventId,
-      ip:             getClientIp(request),
-      userAgent:      request.headers.get('user-agent') || undefined,
-      email:          email || undefined,
-      fbc:            fbc || parseCookie(cookieHeader, '_fbc'),
-      fbp:            fbp || parseCookie(cookieHeader, '_fbp'),
-      customData: {
-        value:        999,
-        currency:     'INR',
-        content_name: 'YoloFare Pro',
-        num_items:    1,
-      },
-    }).catch(() => {}) // fire-and-forget, don't block checkout
+      ip:         getClientIp(request),
+      userAgent:  request.headers.get('user-agent') || undefined,
+      email:      email || undefined,
+      fbc:        fbc || parseCookie(cookieHeader, '_fbc'),
+      fbp:        fbp || parseCookie(cookieHeader, '_fbp'),
+      customData: { value: 999, currency: 'INR', content_name: 'YoloFare Pro', num_items: 1 },
+    }).catch(() => {})
 
-    return Response.json({
-      orderId:  order.id,
-      amount:   order.amount,
-      currency: order.currency,
-      eventId,  // client uses this same ID in fbq() to deduplicate
-    })
+    return Response.json({ subscriptionId: subscription.id, eventId })
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 })
   }

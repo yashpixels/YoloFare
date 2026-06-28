@@ -37,11 +37,23 @@ export default function DealsPage() {
   async function checkProStatus(userId) {
     const { data } = await supabase
       .from('subscriptions')
-      .select('status')
+      .select('status, expires_at')
       .eq('user_id', userId)
       .eq('status', 'active')
       .maybeSingle()
-    setIsPro(!!data)
+
+    if (!data) { setIsPro(false); return }
+
+    // Enforce expiry — subscription must not have lapsed
+    const expired = data.expires_at && new Date(data.expires_at) < new Date()
+    if (expired) {
+      setIsPro(false)
+      // Mark as expired in DB so admin panel reflects reality
+      supabase.from('subscriptions').update({ status: 'expired' }).eq('user_id', userId)
+      return
+    }
+
+    setIsPro(true)
   }
 
   async function fetchDeals() {
