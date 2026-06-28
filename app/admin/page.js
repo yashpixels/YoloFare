@@ -118,9 +118,9 @@ export default function AdminPage() {
     const url=e.target.value;setFlightUrl(url);setParseMsg('');setAutoFilled([])
     if(!url.includes('google.com/travel/flights'))return
     const parsed=parseGoogleFlightsUrl(url)
-    if(parsed.autoFilled.length===0){setParseMsg('â ï¸ Could not extract â fill manually.');setForm(f=>({...f,booking_url:url}));return}
+    if(parsed.autoFilled.length===0){setParseMsg('⚠️ Could not extract — fill manually.');setForm(f=>({...f,booking_url:url}));return}
     setForm(f=>({...f,booking_url:url,dest_code:parsed.dest_code||f.dest_code,destination:parsed.destination||f.destination,country:parsed.country||f.country,region:parsed.region||f.region,origin_code:parsed.origin_code||f.origin_code,origin_city:parsed.origin_city||f.origin_city,travel_dates:parsed.travel_dates||f.travel_dates}))
-    setAutoFilled(parsed.autoFilled);setParseMsg(`â Auto-filled ${parsed.autoFilled.length} fields.`)
+    setAutoFilled(parsed.autoFilled);setParseMsg(`✅ Auto-filled ${parsed.autoFilled.length} fields.`)
   }
 
   function handleFormChange(e){
@@ -138,8 +138,8 @@ export default function AdminPage() {
     let error
     if(editId){const res=await supabase.from('deals').update(dealData).eq('id',editId);error=res.error}
     else{const res=await supabase.from('deals').insert(dealData);error=res.error}
-    if(error){setMessage(`â Error: ${error.message}`)}
-    else{setMessage(editId?'â Deal updated!':'â Deal added!');setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('');setEditId(null);fetchDeals();setTab('manage')}
+    if(error){setMessage(`❌ Error: ${error.message}`)}
+    else{setMessage(editId?'✅ Deal updated!':'✅ Deal added!');setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('');setEditId(null);fetchDeals();setTab('manage')}
     setSaving(false)
   }
 
@@ -148,7 +148,7 @@ export default function AdminPage() {
   async function toggleFreePreview(deal){
     const turningOn=!deal.is_free_preview
     const currentFreeCount=deals.filter(d=>d.is_free_preview&&d.id!==deal.id).length
-    if(turningOn&&currentFreeCount>=3){setMessage('â ï¸ Max 3 free preview deals. Remove one first.');setTimeout(()=>setMessage(''),3000);return}
+    if(turningOn&&currentFreeCount>=3){setMessage('⚠️ Max 3 free preview deals. Remove one first.');setTimeout(()=>setMessage(''),3000);return}
     await supabase.from('deals').update({is_free_preview:!deal.is_free_preview}).eq('id',deal.id);fetchDeals()
   }
 
@@ -160,7 +160,7 @@ export default function AdminPage() {
   }
 
   async function sendDealAlert(deal) {
-    if (!confirm(`Send alert for this deal to all matching Pro subscribers?\n\n${deal.origin_code} â ${deal.dest_code} Â· ${deal.destination}\nâ¹${deal.deal_price?.toLocaleString('en-IN')} Â· ${deal.savings_pct}% off`)) return
+    if (!confirm(`Send alert for this deal to all matching Pro subscribers?\n\n${deal.origin_code} → ${deal.dest_code} · ${deal.destination}\n₹${deal.deal_price?.toLocaleString('en-IN')} · ${deal.savings_pct}% off`)) return
     setSendingDealId(deal.id)
     try {
       const res = await fetch('/api/send-alerts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ secret: 'yolofare-cron-2026', dealId: deal.id }) })
@@ -203,7 +203,7 @@ export default function AdminPage() {
           <label style={s.label}>Password</label>
           <input type="password" value={password} onChange={e=>setPassword(e.target.value)} style={s.input} placeholder="Enter admin password"/>
           {pwError&&<div style={{color:'#FF8060',fontSize:13,marginBottom:12}}>{pwError}</div>}
-          <button type="submit" style={{...s.btn,width:'100%'}}>Enter â</button>
+          <button type="submit" style={{...s.btn,width:'100%'}}>Enter →</button>
         </form>
       </div>
     </div>
@@ -233,56 +233,56 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div style={{display:'flex',gap:8,marginBottom:28,flexWrap:'wrap'}}>
-          <button style={s.tab(tab==='add')} onClick={()=>{setTab('add');setEditId(null);setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('')}}>{editId?'âï¸ Edit deal':'â Add deal'}</button>
-          <button style={s.tab(tab==='manage')} onClick={()=>setTab('manage')}>ð Manage deals ({deals.filter(d=>d.is_active).length} active)</button>
-          <button style={s.tab(tab==='subscribers')} onClick={()=>{setTab('subscribers');fetchSubscribers()}}>ð¥ Subscribers</button>
+          <button style={s.tab(tab==='add')} onClick={()=>{setTab('add');setEditId(null);setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('')}}>{editId?'✏️ Edit deal':'➕ Add deal'}</button>
+          <button style={s.tab(tab==='manage')} onClick={()=>setTab('manage')}>📋 Manage deals ({deals.filter(d=>d.is_active).length} active)</button>
+          <button style={s.tab(tab==='subscribers')} onClick={()=>{setTab('subscribers');fetchSubscribers()}}>👥 Subscribers</button>
         </div>
 
         {message&&(
-          <div style={{background:message.includes('â')||message.includes('â ï¸')?'rgba(255,80,60,0.1)':'rgba(76,175,80,0.1)',border:`0.5px solid ${message.includes('â')||message.includes('â ï¸')?'rgba(255,80,60,0.3)':'rgba(76,175,80,0.3)'}`,borderRadius:12,padding:'12px 16px',marginBottom:20,fontSize:14}}>
+          <div style={{background:message.includes('❌')||message.includes('⚠️')?'rgba(255,80,60,0.1)':'rgba(76,175,80,0.1)',border:`0.5px solid ${message.includes('❌')||message.includes('⚠️')?'rgba(255,80,60,0.3)':'rgba(76,175,80,0.3)'}`,borderRadius:12,padding:'12px 16px',marginBottom:20,fontSize:14}}>
             {message}
           </div>
         )}
 
-        {/* ââ ADD / EDIT ââ */}
+        {/* ── ADD / EDIT ── */}
         {tab==='add'&&(
           <form onSubmit={handleSubmit} style={{background:'rgba(255,255,255,0.05)',border:'0.5px solid rgba(255,255,255,0.1)',borderRadius:20,padding:28}}>
             <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:700,marginBottom:24}}>{editId?'Edit deal':'Add new deal'}</div>
             <div style={{background:'rgba(255,92,58,0.06)',border:'1px solid rgba(255,92,58,0.25)',borderRadius:16,padding:'20px 20px 4px',marginBottom:28}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span style={{fontSize:18}}>âï¸</span><span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>Paste Google Flights URL</span><span style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>â fields auto-fill instantly</span></div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span style={{fontSize:18}}>✈️</span><span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>Paste Google Flights URL</span><span style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>— fields auto-fill instantly</span></div>
               <p style={{fontSize:13,color:'rgba(255,245,236,0.45)',marginBottom:14,lineHeight:1.6}}>Go to <strong style={{color:'rgba(255,245,236,0.7)'}}>google.com/travel/flights</strong>, find the deal, copy the URL and paste below.</p>
               <input value={flightUrl} onChange={handleFlightUrlChange} style={{...s.input,fontSize:13,marginBottom:12}} placeholder="https://www.google.com/travel/flights/search?tfs=..."/>
-              {parseMsg&&<div style={{fontSize:13,color:parseMsg.includes('â')?'#4CAF50':'#FF8060',marginBottom:12,padding:'8px 12px',background:parseMsg.includes('â')?'rgba(76,175,80,0.08)':'rgba(255,80,60,0.08)',borderRadius:8}}>{parseMsg}</div>}
+              {parseMsg&&<div style={{fontSize:13,color:parseMsg.includes('✅')?'#4CAF50':'#FF8060',marginBottom:12,padding:'8px 12px',background:parseMsg.includes('✅')?'rgba(76,175,80,0.08)':'rgba(255,80,60,0.08)',borderRadius:8}}>{parseMsg}</div>}
             </div>
             <div style={s.grid2}>
-              <div><label style={s.label}>Destination city * {isAF('destination')&&<span style={aTag}>â auto-filled</span>}</label><input name="destination" value={form.destination} onChange={handleFormChange} style={isAF('destination')?s.inputAuto:s.input} placeholder="e.g. Tokyo" required/></div>
-              <div><label style={s.label}>Country code * {isAF('country')&&<span style={aTag}>â auto-filled</span>}</label><input name="country" value={form.country} onChange={handleFormChange} style={isAF('country')?s.inputAuto:s.input} placeholder="e.g. JP" required/></div>
+              <div><label style={s.label}>Destination city * {isAF('destination')&&<span style={aTag}>✓ auto-filled</span>}</label><input name="destination" value={form.destination} onChange={handleFormChange} style={isAF('destination')?s.inputAuto:s.input} placeholder="e.g. Tokyo" required/></div>
+              <div><label style={s.label}>Country code * {isAF('country')&&<span style={aTag}>✓ auto-filled</span>}</label><input name="country" value={form.country} onChange={handleFormChange} style={isAF('country')?s.inputAuto:s.input} placeholder="e.g. JP" required/></div>
             </div>
             <div style={s.grid2}>
-              <div><label style={s.label}>Region * {isAF('region')&&<span style={aTag}>â auto-filled</span>}</label><select name="region" value={form.region} onChange={handleFormChange} style={isAF('region')?s.selectAuto:s.select}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
-              <div><label style={s.label}>Origin city * {isAF('origin_city')&&<span style={aTag}>â auto-filled</span>}</label><select name="origin_city" value={form.origin_city} onChange={handleFormChange} style={isAF('origin_city')?s.selectAuto:s.select}>{CITIES.map(c=><option key={c} value={c}>{c} ({CITY_CODES[c]})</option>)}</select></div>
+              <div><label style={s.label}>Region * {isAF('region')&&<span style={aTag}>✓ auto-filled</span>}</label><select name="region" value={form.region} onChange={handleFormChange} style={isAF('region')?s.selectAuto:s.select}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+              <div><label style={s.label}>Origin city * {isAF('origin_city')&&<span style={aTag}>✓ auto-filled</span>}</label><select name="origin_city" value={form.origin_city} onChange={handleFormChange} style={isAF('origin_city')?s.selectAuto:s.select}>{CITIES.map(c=><option key={c} value={c}>{c} ({CITY_CODES[c]})</option>)}</select></div>
             </div>
             <div style={s.grid3}>
-              <div><label style={s.label}>Dest. airport code * {isAF('dest_code')&&<span style={aTag}>â auto-filled</span>}</label><input name="dest_code" value={form.dest_code} onChange={handleFormChange} style={isAF('dest_code')?s.inputAuto:s.input} placeholder="e.g. NRT" required/></div>
+              <div><label style={s.label}>Dest. airport code * {isAF('dest_code')&&<span style={aTag}>✓ auto-filled</span>}</label><input name="dest_code" value={form.dest_code} onChange={handleFormChange} style={isAF('dest_code')?s.inputAuto:s.input} placeholder="e.g. NRT" required/></div>
               <div><label style={s.label}>Airline *</label><input name="airline" value={form.airline} onChange={handleFormChange} style={s.input} placeholder="e.g. IndiGo" required/></div>
               <div><label style={s.label}>Cabin class *</label><select name="cabin_class" value={form.cabin_class} onChange={handleFormChange} style={s.select}>{CLASSES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
             </div>
             <div style={s.grid3}>
-              <div><label style={s.label}>Deal price (â¹) *</label><input name="deal_price" type="number" value={form.deal_price} onChange={handleFormChange} style={s.input} placeholder="e.g. 15850" required/></div>
-              <div><label style={s.label}>Regular price (â¹) *</label><input name="regular_price" type="number" value={form.regular_price} onChange={handleFormChange} style={s.input} placeholder="e.g. 35000" required/></div>
+              <div><label style={s.label}>Deal price (₹) *</label><input name="deal_price" type="number" value={form.deal_price} onChange={handleFormChange} style={s.input} placeholder="e.g. 15850" required/></div>
+              <div><label style={s.label}>Regular price (₹) *</label><input name="regular_price" type="number" value={form.regular_price} onChange={handleFormChange} style={s.input} placeholder="e.g. 35000" required/></div>
               <div><label style={s.label}>Savings % (auto)</label><input name="savings_pct" type="number" value={form.savings_pct} onChange={handleFormChange} style={{...s.input,background:'rgba(76,175,80,0.08)',borderColor:'rgba(76,175,80,0.2)'}} placeholder="Auto"/></div>
             </div>
             <div style={s.grid3}>
               <div><label style={s.label}>Stops</label><select name="stops" value={form.stops} onChange={handleFormChange} style={s.select}><option value="0">Non-stop</option><option value="1">1 stop</option></select></div>
-              <div><label style={s.label}>Travel dates {isAF('travel_dates')&&<span style={aTag}>â auto-filled</span>}</label><input name="travel_dates" value={form.travel_dates} onChange={handleFormChange} style={isAF('travel_dates')?s.inputAuto:s.input} placeholder="e.g. AugâSept 2026"/></div>
+              <div><label style={s.label}>Travel dates {isAF('travel_dates')&&<span style={aTag}>✓ auto-filled</span>}</label><input name="travel_dates" value={form.travel_dates} onChange={handleFormChange} style={isAF('travel_dates')?s.inputAuto:s.input} placeholder="e.g. Aug–Sept 2026"/></div>
               <div><label style={s.label}>Expires in</label><select name="expires_hours" value={form.expires_hours} onChange={handleFormChange} style={s.select}><option value="24">24 hours</option><option value="48">48 hours</option><option value="72">72 hours</option><option value="96">96 hours</option><option value="168">7 days</option></select></div>
             </div>
             <div><label style={s.label}>Google Flights URL</label><input name="booking_url" value={form.booking_url} onChange={handleFormChange} style={s.input} placeholder="https://www.google.com/travel/flights/..."/></div>
             <div><label style={s.label}>Image URL (Unsplash)</label><input name="image_url" value={form.image_url} onChange={handleFormChange} style={s.input} placeholder="https://images.unsplash.com/..."/></div>
-            <div><label style={s.label}>Description</label><input name="description" value={form.description} onChange={handleFormChange} style={s.input} placeholder="e.g. Non-stop deal to Tokyo â cherry blossom season."/></div>
+            <div><label style={s.label}>Description</label><input name="description" value={form.description} onChange={handleFormChange} style={s.input} placeholder="e.g. Non-stop deal to Tokyo — cherry blossom season."/></div>
             <div style={{background:'rgba(76,175,80,0.06)',border:'1px solid rgba(76,175,80,0.2)',borderRadius:14,padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
-                <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>ð Show as Free Preview deal</div>
+                <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>🆓 Show as Free Preview deal</div>
                 <div style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Free users will see this. Max 3 ({freeCount}/3 used).</div>
               </div>
               <label style={{position:'relative',display:'inline-block',width:48,height:26,flexShrink:0}}>
@@ -291,18 +291,18 @@ export default function AdminPage() {
               </label>
             </div>
             <div style={{display:'flex',gap:12,marginTop:8}}>
-              <button type="submit" disabled={saving} style={{...s.btn,opacity:saving?0.7:1}}>{saving?'Saving...':editId?'Update deal â':'Add deal â'}</button>
+              <button type="submit" disabled={saving} style={{...s.btn,opacity:saving?0.7:1}}>{saving?'Saving...':editId?'Update deal →':'Add deal →'}</button>
               {editId&&<button type="button" onClick={()=>{setEditId(null);setForm(EMPTY_FORM);setFlightUrl('');setAutoFilled([]);setParseMsg('')}} style={{...s.btn,background:'rgba(255,255,255,0.1)'}}>Cancel</button>}
             </div>
           </form>
         )}
 
-        {/* ââ MANAGE DEALS ââ */}
+        {/* ── MANAGE DEALS ── */}
         {tab==='manage'&&(
           <div>
             <div style={{background:'rgba(76,175,80,0.07)',border:'0.5px solid rgba(76,175,80,0.25)',borderRadius:14,padding:'14px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <div><span style={{fontSize:14,fontWeight:600}}>ð Free Preview: </span><span style={{fontSize:14,color:freeCount>=3?'#FF8060':'#4CAF50',fontWeight:700}}>{freeCount}/3 used</span></div>
-              <span style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Click ð¬ to send an alert for any deal</span>
+              <div><span style={{fontSize:14,fontWeight:600}}>🆓 Free Preview: </span><span style={{fontSize:14,color:freeCount>=3?'#FF8060':'#4CAF50',fontWeight:700}}>{freeCount}/3 used</span></div>
+              <span style={{fontSize:12,color:'rgba(255,245,236,0.45)'}}>Click 📬 to send an alert for any deal</span>
             </div>
             {loading?<div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>Loading...</div>
             :deals.length===0?<div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>No deals yet.</div>
@@ -313,21 +313,21 @@ export default function AdminPage() {
                     {deal.image_url&&<img src={deal.image_url} alt={deal.destination} style={{width:56,height:56,borderRadius:10,objectFit:'cover',flexShrink:0}}/>}
                     <div style={{flex:1,minWidth:160}}>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2,flexWrap:'wrap'}}>
-                        <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>{deal.origin_code} â {deal.dest_code} Â· {deal.destination}</span>
+                        <span style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700}}>{deal.origin_code} → {deal.dest_code} · {deal.destination}</span>
                         {deal.is_free_preview&&<span style={{fontSize:10,fontWeight:700,background:'rgba(76,175,80,0.2)',color:'#4CAF50',border:'0.5px solid rgba(76,175,80,0.4)',padding:'2px 8px',borderRadius:100}}>FREE</span>}
                       </div>
-                      <div style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>{deal.airline} Â· {deal.cabin_class} Â· {deal.stops===0?'Non-stop':'1 stop'} Â· {deal.travel_dates}</div>
+                      <div style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>{deal.airline} · {deal.cabin_class} · {deal.stops===0?'Non-stop':'1 stop'} · {deal.travel_dates}</div>
                     </div>
                     <div style={{textAlign:'right',flexShrink:0}}>
-                      <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:700,color:'#FF5C3A'}}>â¹{deal.deal_price?.toLocaleString('en-IN')}</div>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:700,color:'#FF5C3A'}}>₹{deal.deal_price?.toLocaleString('en-IN')}</div>
                       <div style={{fontSize:12,color:'rgba(255,245,236,0.4)'}}>{deal.savings_pct}% off</div>
                     </div>
                     <div style={{display:'flex',gap:8,flexShrink:0,flexWrap:'wrap'}}>
                       <button onClick={()=>sendDealAlert(deal)} disabled={sendingDealId===deal.id} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:sendingDealId===deal.id?'not-allowed':'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,background:'rgba(255,92,58,0.15)',color:'#FF8060',opacity:sendingDealId===deal.id?0.6:1}}>
-                        {sendingDealId===deal.id?'â³ Sending...':'ð¬ Send alert'}
+                        {sendingDealId===deal.id?'⏳ Sending...':'📬 Send alert'}
                       </button>
                       <button onClick={()=>toggleFreePreview(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,background:deal.is_free_preview?'rgba(76,175,80,0.2)':'rgba(255,255,255,0.07)',color:deal.is_free_preview?'#4CAF50':'rgba(255,245,236,0.4)',boxShadow:deal.is_free_preview?'0 0 0 1px rgba(76,175,80,0.4)':'none'}}>
-                        {deal.is_free_preview?'ð¢ FREE':'ð PRO'}
+                        {deal.is_free_preview?'🟢 FREE':'🔒 PRO'}
                       </button>
                       <button onClick={()=>editDeal(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'0.5px solid rgba(255,255,255,0.2)',background:'none',color:'#FFF5EC',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>Edit</button>
                       <button onClick={()=>toggleActive(deal)} style={{fontSize:12,padding:'6px 14px',borderRadius:100,border:'none',background:deal.is_active?'rgba(255,80,60,0.15)':'rgba(76,175,80,0.15)',color:deal.is_active?'#FF8060':'#4CAF50',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>{deal.is_active?'Deactivate':'Activate'}</button>
@@ -338,11 +338,11 @@ export default function AdminPage() {
                 {alertResults[deal.id]&&(
                   <div style={{marginBottom:12,marginTop:-8,background:alertResults[deal.id].error?'rgba(255,80,60,0.08)':'rgba(76,175,80,0.08)',border:`0.5px solid ${alertResults[deal.id].error?'rgba(255,80,60,0.25)':'rgba(76,175,80,0.25)'}`,borderRadius:'0 0 12px 12px',padding:'12px 20px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
                     {alertResults[deal.id].error?(
-                      <span style={{fontSize:13,color:'#FF8060'}}>â {alertResults[deal.id].error}</span>
+                      <span style={{fontSize:13,color:'#FF8060'}}>❌ {alertResults[deal.id].error}</span>
                     ):(
                       <>
-                        <span style={{fontSize:13,color:'#4CAF50',fontWeight:600}}>â Sent at {alertResults[deal.id].sentAt}</span>
-                        <span style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>ð§ {alertResults[deal.id].emailsSent} emails Â· ð¬ {alertResults[deal.id].whatsappSent} WhatsApp Â· {alertResults[deal.id].matchedSubscribers}/{alertResults[deal.id].totalSubscribers} subscribers matched</span>
+                        <span style={{fontSize:13,color:'#4CAF50',fontWeight:600}}>✅ Sent at {alertResults[deal.id].sentAt}</span>
+                        <span style={{fontSize:12,color:'rgba(255,245,236,0.5)'}}>📧 {alertResults[deal.id].emailsSent} emails · 💬 {alertResults[deal.id].whatsappSent} WhatsApp · {alertResults[deal.id].matchedSubscribers}/{alertResults[deal.id].totalSubscribers} subscribers matched</span>
                       </>
                     )}
                   </div>
@@ -352,19 +352,19 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ââ SUBSCRIBERS TAB ââ */}
+        {/* ── SUBSCRIBERS TAB ── */}
         {tab==='subscribers'&&(
           <div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
               <div style={{fontFamily:"'Syne',sans-serif",fontSize:16,fontWeight:700}}>Pro subscribers</div>
-              <input value={destFilter} onChange={e=>setDestFilter(e.target.value)} placeholder="ð Filter by destination (e.g. SIN, BKK, Tokyo)" style={{padding:'10px 16px',background:'rgba(255,255,255,0.06)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:100,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:'none',width:300}}/>
+              <input value={destFilter} onChange={e=>setDestFilter(e.target.value)} placeholder="🔍 Filter by destination (e.g. SIN, BKK, Tokyo)" style={{padding:'10px 16px',background:'rgba(255,255,255,0.06)',border:'0.5px solid rgba(255,255,255,0.15)',borderRadius:100,color:'#FFF5EC',fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:'none',width:300}}/>
             </div>
 
             {subsLoading?(
               <div style={{textAlign:'center',padding:40,color:'rgba(255,245,236,0.3)'}}>Loading subscribers...</div>
             ):subscribers.length===0?(
               <div style={{textAlign:'center',padding:60,color:'rgba(255,245,236,0.3)'}}>
-                <div style={{fontSize:40,marginBottom:12}}>ð¥</div>
+                <div style={{fontSize:40,marginBottom:12}}>👥</div>
                 <div>No active Pro subscribers yet.</div>
               </div>
             ):(()=>{
@@ -382,7 +382,7 @@ export default function AdminPage() {
                 <>
                   <div style={{fontSize:13,color:'rgba(255,245,236,0.4)',marginBottom:16}}>
                     Showing <strong style={{color:'#FFF5EC'}}>{filtered.length}</strong> of {subscribers.length} subscriber{subscribers.length!==1?'s':''}
-                    {destFilter && <span style={{color:'#FF8060'}}> Â· interested in "{destFilter.toUpperCase()}"</span>}
+                    {destFilter && <span style={{color:'#FF8060'}}> · interested in "{destFilter.toUpperCase()}"</span>}
                   </div>
                   {filtered.map(sub=>(
                     <div key={sub.user_id} style={{background:'rgba(255,255,255,0.04)',border:'0.5px solid rgba(255,255,255,0.08)',borderRadius:16,padding:'16px 20px',marginBottom:10}}>
@@ -392,25 +392,25 @@ export default function AdminPage() {
                           <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
                             {(sub.prefs?.preferred_destinations||[]).length>0?(
                               sub.prefs.preferred_destinations.map(d=>(
-                                <span key={d} style={{fontSize:11,padding:'3px 10px',background:'rgba(255,92,58,0.1)',border:'0.5px solid rgba(255,92,58,0.2)',borderRadius:100,color:'#FF8060'}}>âï¸ {d}</span>
+                                <span key={d} style={{fontSize:11,padding:'3px 10px',background:'rgba(255,92,58,0.1)',border:'0.5px solid rgba(255,92,58,0.2)',borderRadius:100,color:'#FF8060'}}>✈️ {d}</span>
                               ))
                             ):(
                               <span style={{fontSize:11,padding:'3px 10px',background:'rgba(255,255,255,0.05)',borderRadius:100,color:'rgba(255,245,236,0.3)'}}>All destinations</span>
                             )}
                             {sub.prefs?.other_destination&&(
-                              <span style={{fontSize:11,padding:'3px 10px',background:'rgba(255,92,58,0.1)',border:'0.5px solid rgba(255,92,58,0.2)',borderRadius:100,color:'#FF8060'}}>ð {sub.prefs.other_destination}</span>
+                              <span style={{fontSize:11,padding:'3px 10px',background:'rgba(255,92,58,0.1)',border:'0.5px solid rgba(255,92,58,0.2)',borderRadius:100,color:'#FF8060'}}>📍 {sub.prefs.other_destination}</span>
                             )}
                           </div>
                         </div>
                         <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
                           <span style={{fontSize:11,padding:'4px 12px',background:'rgba(255,215,0,0.1)',border:'0.5px solid rgba(255,215,0,0.2)',borderRadius:100,color:'#FFD700'}}>
-                            ðº {sub.prefs?.preferred_class||'All Classes'}
+                            💺 {sub.prefs?.preferred_class||'All Classes'}
                           </span>
                           {(sub.prefs?.preferred_origins||[]).map(o=>(
-                            <span key={o} style={{fontSize:11,padding:'4px 12px',background:'rgba(255,255,255,0.06)',borderRadius:100,color:'rgba(255,245,236,0.5)'}}>ð« {o}</span>
+                            <span key={o} style={{fontSize:11,padding:'4px 12px',background:'rgba(255,255,255,0.06)',borderRadius:100,color:'rgba(255,245,236,0.5)'}}>🛫 {o}</span>
                           ))}
                           {sub.prefs?.whatsapp_opted_in&&(
-                            <span style={{fontSize:11,padding:'4px 12px',background:'rgba(37,211,102,0.1)',border:'0.5px solid rgba(37,211,102,0.3)',borderRadius:100,color:'#25D366'}}>ð¬ WhatsApp</span>
+                            <span style={{fontSize:11,padding:'4px 12px',background:'rgba(37,211,102,0.1)',border:'0.5px solid rgba(37,211,102,0.3)',borderRadius:100,color:'#25D366'}}>💬 WhatsApp</span>
                           )}
                           {!sub.prefs&&(
                             <span style={{fontSize:11,padding:'4px 12px',background:'rgba(255,255,255,0.04)',borderRadius:100,color:'rgba(255,245,236,0.3)'}}>No preferences set</span>
