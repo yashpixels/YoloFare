@@ -18,7 +18,7 @@ export default function LoginPage() {
     setLoading(true); setError(''); setMessage('')
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: 'https://www.yolofare.com/deals' }
+      options: { emailRedirectTo: 'https://www.yolofare.com/auth/callback' }
     })
     if (error) setError(error.message)
     else { setMessage('✅ Magic link sent! Check your email.'); trackLead(); }
@@ -44,7 +44,7 @@ export default function LoginPage() {
     setLoading(true); setError('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: 'https://www.yolofare.com/deals' }
+      options: { redirectTo: 'https://www.yolofare.com/auth/callback' }
     })
     if (error) { setError(error.message); setLoading(false) }
   }
