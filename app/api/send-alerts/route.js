@@ -161,4 +161,9 @@ export async function POST(request) {
       whatsappSent: whatsappResults.filter(r => r.success).length,
       totalSubscribers: proUsers.length,
       matchedSubscribers: emailResults.length,
-      dealName: 
+      dealName: `${deal.origin_code} &rarr; ${deal.dest_code} &middot; ${deal.destination}`,
+    })
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 })
+  }
+}
