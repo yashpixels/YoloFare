@@ -21,7 +21,7 @@ export default function LoginPage() {
       options: { emailRedirectTo: 'https://www.yolofare.com/auth/callback' }
     })
     if (error) setError(error.message)
-    else { setMessage('✅ Magic link sent! Check your inbox — and your spam/junk folder if you don\'t see it.'); trackLead(); }
+    else { setMessage('✅ Magic link sent! Check your inbox — and your spam/junk folder if you don\'t see it.'); trackLead(email); }
     setLoading(false)
   }
 
