@@ -38,7 +38,7 @@ export async function POST(request) {
       method: 'POST', headers,
       body: JSON.stringify({
         plan_id:         planId,
-        total_count:     120,   // 10 years — effectively unlimited
+        total_count:     3,     // 3 months
         quantity:        1,
         customer_notify: 1,
         notes:           { userId, plan: 'pro' },
