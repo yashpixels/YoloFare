@@ -7,6 +7,18 @@ export default function FacebookPixel() {
   const pathname = usePathname()
   const [loaded, setLoaded] = useState(false)
 
+  // Capture fbclid from URL and persist as _fbc cookie (90 days)
+  // Must happen immediately on mount before Next.js router can strip the param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const fbclid = params.get('fbclid')
+    if (fbclid) {
+      const fbc = `fb.1.${Date.now()}.${fbclid}`
+      const expires = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toUTCString()
+      document.cookie = `_fbc=${encodeURIComponent(fbc)};expires=${expires};path=/;SameSite=Lax`
+    }
+  }, [])
+
   useEffect(() => {
     if (loaded && window.fbq) {
       window.fbq('track', 'PageView')
