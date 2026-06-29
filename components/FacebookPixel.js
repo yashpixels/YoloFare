@@ -2,6 +2,7 @@
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { pageview } from '../lib/pixel.js'
 
 export default function FacebookPixel() {
   const pathname = usePathname()
@@ -20,9 +21,7 @@ export default function FacebookPixel() {
   }, [])
 
   useEffect(() => {
-    if (loaded && window.fbq) {
-      window.fbq('track', 'PageView')
-    }
+    if (loaded) pageview()
   }, [pathname, loaded])
 
   const pixelScript = [
