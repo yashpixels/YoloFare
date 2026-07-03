@@ -115,7 +115,7 @@ function LoginContent() {
         <p style={{ fontSize: 14, color: 'rgba(255,245,236,0.45)', marginBottom: 24, lineHeight: 1.6 }}>
           {mode === 'otp'
             ? (otpSent
-                ? `We sent a 6-digit code to ${email}`
+                ? `We sent an 8-digit code to ${email}`
                 : "Enter your email and we'll send you a one-time code.")
             : authType === 'signup'
             ? 'Create your YoloFare account with email and password.'
@@ -158,23 +158,23 @@ function LoginContent() {
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp}>
-              <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>6-digit code</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>8-digit code</label>
               <input
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                maxLength={6}
+                maxLength={8}
                 value={otpCode}
                 onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                style={{ ...inp, fontSize: 28, letterSpacing: 12, textAlign: 'center', fontWeight: 700 }}
-                placeholder="······"
+                style={{ ...inp, fontSize: 28, letterSpacing: 8, textAlign: 'center', fontWeight: 700 }}
+                placeholder="········"
                 autoComplete="one-time-code"
                 required
                 autoFocus
               />
               {error   && <div style={{ color: '#FF8060', fontSize: 13, marginBottom: 12 }}>{error}</div>}
               {message && <div style={{ color: '#4CAF50', fontSize: 13, marginBottom: 12 }}>{message}</div>}
-              <button type="submit" disabled={loading || otpCode.length < 6} style={{ width: '100%', background: '#FF5C3A', color: 'white', border: 'none', padding: '14px', borderRadius: 100, fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, cursor: (loading || otpCode.length < 6) ? 'not-allowed' : 'pointer', opacity: (loading || otpCode.length < 6) ? 0.7 : 1 }}>
+              <button type="submit" disabled={loading || otpCode.length < 8} style={{ width: '100%', background: '#FF5C3A', color: 'white', border: 'none', padding: '14px', borderRadius: 100, fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, cursor: (loading || otpCode.length < 6) ? 'not-allowed' : 'pointer', opacity: (loading || otpCode.length < 6) ? 0.7 : 1 }}>
                 {loading ? 'Verifying...' : 'Verify & sign in →'}
               </button>
               <button type="button" onClick={() => { setOtpSent(false); setOtpCode(''); setError(''); setMessage('') }} style={{ width: '100%', marginTop: 12, background: 'transparent', border: 'none', color: 'rgba(255,245,236,0.4)', fontSize: 13, cursor: 'pointer', padding: '8px' }}>
