@@ -1,11 +1,11 @@
 ﻿'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { trackLead, trackCompleteRegistration } from '../../lib/pixel.js'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 
-export default function LoginPage() {
+function LoginContent() {
   const searchParams = useSearchParams()
   const next = searchParams.get('next') || '/deals'
 
@@ -146,4 +146,17 @@ export default function LoginPage() {
 
       </div>
 
-      <Li
+      <Link href="/deals" style={{ marginTop: 20, fontSize: 13, color: 'rgba(255,245,236,0.3)', textDecoration: 'none', position: 'relative', zIndex: 1 }}>
+        ← Back to deals
+      </Link>
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0D0A08' }} />}>
+      <LoginContent />
+    </Suspense>
+  )
+}
