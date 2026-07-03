@@ -168,6 +168,7 @@ function LoginContent() {
                 onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
                 style={{ ...inp, fontSize: 28, letterSpacing: 12, textAlign: 'center', fontWeight: 700 }}
                 placeholder="······"
+                autoComplete="one-time-code"
                 required
                 autoFocus
               />
