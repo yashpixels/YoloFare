@@ -1,10 +1,14 @@
 ﻿'use client'
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { trackLead, trackCompleteRegistration } from '../../lib/pixel.js'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 
 export default function LoginPage() {
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next') || '/deals'
+
   const [mode, setMode]         = useState('magic')  // 'magic' | 'password'
   const [authType, setAuthType] = useState('signin') // 'signin' | 'signup'
   const [email, setEmail]       = useState('')
@@ -18,7 +22,7 @@ export default function LoginPage() {
     setLoading(true); setError(''); setMessage('')
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: 'https://www.yolofare.com/auth/callback' }
+      options: { emailRedirectTo: `https://www.yolofare.com/auth/callback?next=${encodeURIComponent(next)}` }
     })
     if (error) setError(error.message)
     else { setMessage('✅ Magic link sent! Check your inbox — and your spam/junk folder if you don\'t see it.'); trackLead(email); }
@@ -35,7 +39,7 @@ export default function LoginPage() {
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError(error.message)
-      else window.location.href = '/deals'
+      else window.location.href = next
     }
     setLoading(false)
   }
@@ -44,7 +48,7 @@ export default function LoginPage() {
     setLoading(true); setError('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: 'https://www.yolofare.com/auth/callback' }
+      options: { redirectTo: `https://www.yolofare.com/auth/callback?next=${encodeURIComponent(next)}` }
     })
     if (error) { setError(error.message); setLoading(false) }
   }
@@ -142,9 +146,4 @@ export default function LoginPage() {
 
       </div>
 
-      <Link href="/deals" style={{ marginTop: 20, fontSize: 13, color: 'rgba(255,245,236,0.3)', textDecoration: 'none', position: 'relative', zIndex: 1 }}>
-        ← Back to deals
-      </Link>
-    </div>
-  )
-}
+      <Li

@@ -275,7 +275,7 @@ export default function DealsPage() {
                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: deal.stops === 0 ? '#4CAF50' : '#FF8060', display: 'inline-block' }} />
                         {deal.stops === 0 ? 'Non-stop' : `${deal.stops} stop`}
                       </span>
-                      <Link href={`/deals/${deal.id}`} onClick={() => trackDealClick(deal.destination, deal.deal_price)} style={{ fontSize: 13, fontWeight: 600, color: '#FF5C3A', textDecoration: 'none' }}>View deal →</Link>
+                      <Link href={user ? `/deals/${deal.id}` : `/login?next=/deals/${deal.id}`} onClick={() => trackDealClick(deal.destination, deal.deal_price)} style={{ fontSize: 13, fontWeight: 600, color: '#FF5C3A', textDecoration: 'none' }}>View deal →</Link>
                     </div>
                   </div>
                 </div>
@@ -298,9 +298,4 @@ export default function DealsPage() {
               </div>
             )}
           </>
-        )}
-      </div>
-    </div>
-  )
-}
-
+       
