@@ -9,7 +9,8 @@ export async function GET(request) {
   const next = searchParams.get('next') ?? '/deals'
 
   if (code) {
-    const response = NextResponse.redirect(`${origin}${next}`)
+    // Collect cookies before we know the redirect destination
+    const pendingCookies = []
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,15 +21,29 @@ export async function GET(request) {
             return request.cookies.getAll()
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              response.cookies.set(name, value, options)
-            })
+            pendingCookies.push(...cookiesToSet)
           },
         },
       }
     )
 
-    await supabase.auth.exchangeCodeForSession(code)
+    const { data: { session } } = await supabase.auth.exchangeCodeForSession(code)
+
+    // New users (no preferences yet) go to preferences setup first
+    let redirectTo = next
+    if (session?.user) {
+      const { data: prefs } = await supabase
+        .from('user_preferences')
+        .select('user_id')
+        .eq('user_id', session.user.id)
+        .maybeSingle()
+      if (!prefs) redirectTo = '/preferences'
+    }
+
+    const response = NextResponse.redirect(`${origin}${redirectTo}`)
+    pendingCookies.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options)
+    })
     return response
   }
 

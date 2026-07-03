@@ -39,7 +39,14 @@ function LoginContent() {
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError(error.message)
-      else window.location.href = next
+      else {
+        const { data: prefs } = await supabase
+          .from('user_preferences')
+          .select('user_id')
+          .eq('user_id', data.user.id)
+          .maybeSingle()
+        window.location.href = prefs ? next : '/preferences'
+      }
     }
     setLoading(false)
   }
