@@ -9,24 +9,53 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const next = searchParams.get('next') || '/deals'
 
-  const [mode, setMode]         = useState('magic')  // 'magic' | 'password'
-  const [authType, setAuthType] = useState('signin') // 'signin' | 'signup'
+  const [mode, setMode]         = useState('otp')     // 'otp' | 'password'
+  const [authType, setAuthType] = useState('signin')  // 'signin' | 'signup'
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
+  const [otpCode, setOtpCode]   = useState('')
+  const [otpSent, setOtpSent]   = useState(false)
   const [loading, setLoading]   = useState(false)
   const [message, setMessage]   = useState('')
   const [error, setError]       = useState('')
 
-  async function handleMagicLink(e) {
+  async function handleSendOtp(e) {
     e.preventDefault()
     setLoading(true); setError(''); setMessage('')
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `https://www.yolofare.com/auth/callback?next=${encodeURIComponent(next)}` }
+      options: { shouldCreateUser: true }
     })
-    if (error) setError(error.message)
-    else { setMessage('✅ Magic link sent! Check your inbox — and your spam/junk folder if you don\'t see it.'); trackLead(email); }
+    if (error) {
+      setError(error.message)
+    } else {
+      setOtpSent(true)
+      setMessage('Code sent! Check your inbox (and spam folder).')
+      trackLead(email)
+    }
     setLoading(false)
+  }
+
+  async function handleVerifyOtp(e) {
+    e.preventDefault()
+    setLoading(true); setError(''); setMessage('')
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: otpCode.trim(),
+      type: 'email'
+    })
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
+    const { data: prefs } = await supabase
+      .from('user_preferences')
+      .select('user_id')
+      .eq('user_id', data.user.id)
+      .maybeSingle()
+    trackCompleteRegistration()
+    window.location.href = prefs ? next : '/preferences'
   }
 
   async function handlePassword(e) {
@@ -79,11 +108,15 @@ function LoginContent() {
       <div style={{ width: '100%', maxWidth: 400, background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: 24, padding: 32, position: 'relative', zIndex: 1 }}>
 
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 6 }}>
-          {mode === 'magic' ? 'Welcome back' : authType === 'signup' ? 'Create account' : 'Sign in'}
+          {mode === 'otp'
+            ? (otpSent ? 'Enter your code' : 'Welcome to YoloFare')
+            : (authType === 'signup' ? 'Create account' : 'Sign in')}
         </h2>
         <p style={{ fontSize: 14, color: 'rgba(255,245,236,0.45)', marginBottom: 24, lineHeight: 1.6 }}>
-          {mode === 'magic'
-            ? "Enter your email and we'll send you a magic link to sign in."
+          {mode === 'otp'
+            ? (otpSent
+                ? `We sent a 6-digit code to ${email}`
+                : "Enter your email and we'll send you a one-time code.")
             : authType === 'signup'
             ? 'Create your YoloFare account with email and password.'
             : 'Sign in with your email and password.'}
@@ -101,27 +134,53 @@ function LoginContent() {
         </div>
         {/* Mode toggle */}
         <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 3, marginBottom: 24, gap: 3 }}>
-          {[['magic', '✉️ Magic link'], ['password', '🔑 Password']].map(([m, label]) => (
-            <button key={m} onClick={() => { setMode(m); setError(''); setMessage('') }} style={{ flex: 1, padding: '9px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, background: mode === m ? 'rgba(255,255,255,0.12)' : 'transparent', color: mode === m ? '#FFF5EC' : 'rgba(255,245,236,0.45)', transition: 'all 0.2s' }}>
+          {[['otp', '✉️ Email code'], ['password', '🔑 Password']].map(([m, label]) => (
+            <button key={m} onClick={() => { setMode(m); setError(''); setMessage(''); setOtpSent(false); setOtpCode('') }} style={{ flex: 1, padding: '9px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, background: mode === m ? 'rgba(255,255,255,0.12)' : 'transparent', color: mode === m ? '#FFF5EC' : 'rgba(255,245,236,0.45)', transition: 'all 0.2s' }}>
               {label}
             </button>
           ))}
         </div>
 
-        {/* Magic link form */}
-        {mode === 'magic' && (
-          <form onSubmit={handleMagicLink}>
-            <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Email address</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={inp} placeholder="you@example.com" required autoFocus />
-            {error   && <div style={{ color: '#FF8060', fontSize: 13, marginBottom: 12 }}>{error}</div>}
-            {message && <div style={{ color: '#4CAF50', fontSize: 13, marginBottom: 12 }}>{message}</div>}
-            <button type="submit" disabled={loading} style={{ width: '100%', background: '#FF5C3A', color: 'white', border: 'none', padding: '14px', borderRadius: 100, fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-              {loading ? 'Sending...' : 'Send magic link →'}
-            </button>
-            <div style={{ marginTop: 16, padding: '12px 16px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, fontSize: 13, color: 'rgba(255,245,236,0.45)', textAlign: 'center' }}>
-              New to YoloFare? Just enter your email above — we'll create your account automatically.
-            </div>
-          </form>
+        {/* Email OTP form */}
+        {mode === 'otp' && (
+          !otpSent ? (
+            <form onSubmit={handleSendOtp}>
+              <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Email address</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={inp} placeholder="you@example.com" required autoFocus />
+              {error   && <div style={{ color: '#FF8060', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+              {message && <div style={{ color: '#4CAF50', fontSize: 13, marginBottom: 12 }}>{message}</div>}
+              <button type="submit" disabled={loading} style={{ width: '100%', background: '#FF5C3A', color: 'white', border: 'none', padding: '14px', borderRadius: 100, fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
+                {loading ? 'Sending...' : 'Send code →'}
+              </button>
+              <div style={{ marginTop: 16, padding: '12px 16px', background: 'rgba(255,255,255,0.04)', borderRadius: 12, fontSize: 13, color: 'rgba(255,245,236,0.45)', textAlign: 'center' }}>
+                New to YoloFare? Just enter your email — we'll create your account automatically.
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp}>
+              <label style={{ display: 'block', fontSize: 11, color: 'rgba(255,245,236,0.4)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>6-digit code</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={otpCode}
+                onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                style={{ ...inp, fontSize: 28, letterSpacing: 12, textAlign: 'center', fontWeight: 700 }}
+                placeholder="······"
+                required
+                autoFocus
+              />
+              {error   && <div style={{ color: '#FF8060', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+              {message && <div style={{ color: '#4CAF50', fontSize: 13, marginBottom: 12 }}>{message}</div>}
+              <button type="submit" disabled={loading || otpCode.length < 6} style={{ width: '100%', background: '#FF5C3A', color: 'white', border: 'none', padding: '14px', borderRadius: 100, fontFamily: "'Syne', sans-serif", fontSize: 15, fontWeight: 700, cursor: (loading || otpCode.length < 6) ? 'not-allowed' : 'pointer', opacity: (loading || otpCode.length < 6) ? 0.7 : 1 }}>
+                {loading ? 'Verifying...' : 'Verify & sign in →'}
+              </button>
+              <button type="button" onClick={() => { setOtpSent(false); setOtpCode(''); setError(''); setMessage('') }} style={{ width: '100%', marginTop: 12, background: 'transparent', border: 'none', color: 'rgba(255,245,236,0.4)', fontSize: 13, cursor: 'pointer', padding: '8px' }}>
+                ← Use a different email
+              </button>
+            </form>
+          )
         )}
 
         {/* Email + Password form */}
