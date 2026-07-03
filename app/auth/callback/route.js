@@ -37,7 +37,7 @@ export async function GET(request) {
         .select('user_id')
         .eq('user_id', session.user.id)
         .maybeSingle()
-      if (!prefs) redirectTo = '/preferences'
+      if (!prefs) redirectTo = '/preferences?from=signup'
     }
 
     const response = NextResponse.redirect(`${origin}${redirectTo}`)

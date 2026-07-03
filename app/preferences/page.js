@@ -43,6 +43,7 @@ function PreferencesContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const isNew        = searchParams.get('new') === 'true'
+  const isSignup     = searchParams.get('from') === 'signup'
 
   const [user, setUser]     = useState(null)
   const [loading, setLoading] = useState(true)
@@ -89,7 +90,7 @@ function PreferencesContent() {
     setSaving(true)
     await supabase.from('user_preferences').upsert({ user_id: user.id, phone: prefs.phone||null, whatsapp_opted_in: prefs.whatsapp_opted_in, preferred_destinations: prefs.preferred_destinations, other_destination: prefs.other_destination||null, preferred_origins: prefs.preferred_origins, preferred_class: prefs.preferred_class, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     setSaving(false)
-    router.push('/deals')
+    router.push(isNew ? '/deals' : isSignup ? '/' : '/deals')
   }
 
   const filteredDests = DESTINATIONS.filter(d => d.city.toLowerCase().includes(searchQuery.toLowerCase()) || d.code.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -117,7 +118,7 @@ function PreferencesContent() {
       {/* Nav */}
       <nav style={{ position:'sticky', top:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 48px', height:64, background:'rgba(13,10,8,0.9)', backdropFilter:'blur(20px)', borderBottom:'0.5px solid rgba(255,255,255,0.1)' }}>
         <Link href="/" style={{ fontFamily:"'Syne', sans-serif", fontSize:18, fontWeight:800, color:'#FFF5EC', textDecoration:'none' }}>Yolo<span style={{ color:'#FF5C3A' }}>Fare</span></Link>
-        {!isNew && <Link href="/deals" style={{ fontSize:13, color:'rgba(255,245,236,0.5)', textDecoration:'none' }}>← Back to deals</Link>}
+        {!isNew && !isSignup && <Link href="/deals" style={{ fontSize:13, color:'rgba(255,245,236,0.5)', textDecoration:'none' }}>← Back to deals</Link>}
       </nav>
 
       <div style={{ position:'relative', zIndex:1, maxWidth:680, margin:'0 auto', padding:'48px 24px 80px' }}>
@@ -135,7 +136,20 @@ function PreferencesContent() {
           </div>
         )}
 
-        {!isNew && (
+        {/* ── SIGNUP welcome banner ── */}
+        {isSignup && (
+          <div style={{ background:'linear-gradient(135deg, rgba(255,92,58,0.1) 0%, rgba(255,92,58,0.03) 100%)', border:'1px solid rgba(255,92,58,0.25)', borderRadius:24, padding:'32px 28px', marginBottom:40, textAlign:'center' }}>
+            <div style={{ fontSize:48, marginBottom:12 }}>✈️</div>
+            <h1 style={{ fontFamily:"'Syne', sans-serif", fontSize:28, fontWeight:800, letterSpacing:-1, marginBottom:12, lineHeight:1.1 }}>
+              One last step
+            </h1>
+            <p style={{ fontSize:16, color:'rgba(255,245,236,0.65)', fontWeight:300, lineHeight:1.7, maxWidth:460, margin:'0 auto' }}>
+              Tell us where you want to fly so we can show you deals that actually matter to you. Takes 30 seconds.
+            </p>
+          </div>
+        )}
+
+        {!isNew && !isSignup && (
           <div style={{ marginBottom:40 }}>
             <h1 style={{ fontFamily:"'Syne', sans-serif", fontSize:32, fontWeight:800, letterSpacing:-1.5, marginBottom:8 }}>Your preferences ✈️</h1>
             <p style={{ fontSize:15, color:'rgba(255,245,236,0.5)', fontWeight:300, lineHeight:1.7 }}>Tell us where you want to fly — we'll only send deals that matter to you.</p>
@@ -215,7 +229,7 @@ function PreferencesContent() {
 
         {/* Save */}
         <button onClick={handleSave} disabled={saving} style={{ width:'100%', background:'#FF5C3A', color:'white', border:'none', padding:'16px', borderRadius:100, fontFamily:"'Syne', sans-serif", fontSize:16, fontWeight:700, cursor:saving?'not-allowed':'pointer', opacity:saving?0.8:1 }}>
-          {saving ? 'Saving...' : isNew ? 'Save & see my deals →' : 'Save preferences →'}
+          {saving ? 'Saving...' : isNew ? 'Save & see my deals →' : isSignup ? 'Let\'s go →' : 'Save preferences →'}
         </button>
         {isNew && <p style={{ textAlign:'center', fontSize:13, color:'rgba(255,245,236,0.3)', marginTop:12 }}>You can update these anytime from your account settings.</p>}
       </div>

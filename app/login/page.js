@@ -55,7 +55,7 @@ function LoginContent() {
       .eq('user_id', data.user.id)
       .maybeSingle()
     trackCompleteRegistration()
-    window.location.href = prefs ? next : '/preferences'
+    window.location.href = prefs ? next : '/preferences?from=signup'
   }
 
   async function handlePassword(e) {
@@ -74,7 +74,7 @@ function LoginContent() {
           .select('user_id')
           .eq('user_id', data.user.id)
           .maybeSingle()
-        window.location.href = prefs ? next : '/preferences'
+        window.location.href = prefs ? next : '/preferences?from=signup'
       }
     }
     setLoading(false)
