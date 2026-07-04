@@ -24,7 +24,7 @@ export default function DealPage({ params }) {
     // Auth gate: require login to view deal details
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        router.replace(\`/login?next=/deals/${id}\`)
+        router.replace(`/login?next=/deals/${id}`)
       } else {
         fetchDeal()
       }
