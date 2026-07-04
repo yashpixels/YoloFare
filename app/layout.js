@@ -86,14 +86,19 @@ const structuredData = {
       '@type': 'Organization',
       '@id': 'https://www.yolofare.com/#organization',
       name: 'YoloFare',
+      alternateName: 'Yolo Fare',
       url: 'https://www.yolofare.com',
       logo: {
         '@type': 'ImageObject',
         url: 'https://www.yolofare.com/logo.png',
       },
-      description: 'YoloFare curates cheap international flight deals for Indian travelers from Delhi, Mumbai, Bangalore, Hyderabad and Chennai.',
+      description: 'YoloFare is an international flight deal alert service for Indian travellers. We curate cheap flight deals from Delhi, Mumbai, Bangalore, Hyderabad and Chennai with no middlemen or agency commissions.',
       areaServed: 'IN',
       serviceType: 'Flight Deal Alerts',
+      sameAs: [
+        'https://www.instagram.com/yolofare/',
+        'https://www.facebook.com/profile.php?id=61590526933553',
+      ],
     },
     {
       '@type': 'Service',

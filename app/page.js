@@ -509,7 +509,7 @@ export default function Home() {
             <span style={{ fontSize: 12, color: 'rgba(255,245,236,0.25)' }}>· Sweet flight deals from India</span>
           </div>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-            {[['Deals','/deals'],['Pricing','/pricing'],['Login','/login'],['Admin','/admin']].map(([label, href]) => (
+            {[['Deals','/deals'],['Pricing','/pricing'],['About','/about'],['Login','/login'],['Admin','/admin']].map(([label, href]) => (
               <Link key={label} href={href} style={{ fontSize: 13, color: 'rgba(255,245,236,0.35)', textDecoration: 'none' }}>{label}</Link>
             ))}
           </div>
