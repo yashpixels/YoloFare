@@ -133,24 +133,52 @@ export async function POST(request) {
       }
     }
 
-    // WhatsApp via Wati
+    // WhatsApp via Meta Cloud API
     const whatsappResults = []
-    if (process.env.WATI_API_ENDPOINT && process.env.WATI_ACCESS_TOKEN) {
-      // phone + whatsapp_opted_in live in user_preferences, not subscriptions
-      const watiSubs = subscribers.filter(s => {
+    if (process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN) {
+      const waSubs = subscribers.filter(s => {
         const p = prefsMap[s.user_id]
         return p?.whatsapp_opted_in && p?.phone && subscriberWantsDeal(s.user_id, deal)
       }).map(s => ({ ...s, phone: prefsMap[s.user_id].phone }))
-      for (const sub of watiSubs) {
+
+      for (const sub of waSubs) {
+        const phone = sub.phone.replace(/\D/g, '').replace(/^0/, '91') // strip non-digits, default to India
         try {
-          await fetch(`${process.env.WATI_API_ENDPOINT}/api/v1/sendTemplateMessage`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${process.env.WATI_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ template_name: 'yolofare_deal_alert', broadcast_name: `deal_${Date.now()}`, receivers: [{ whatsappNumber: sub.phone.replace(/\D/g,''), customParams: [{ name:'1',value:'there'},{name:'2',value:deal.origin_code},{name:'3',value:deal.dest_code},{name:'4',value:deal.deal_price?.toLocaleString('en-IN')},{name:'5',value:String(deal.savings_pct)},{name:'6',value:deal.airline},{name:'7',value:deal.cabin_class}] }] })
-          })
-          whatsappResults.push({ phone: sub.phone, success: true })
+          const res = await fetch(
+            `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: phone,
+                type: 'template',
+                template: {
+                  name: 'yolofare_deal_alert',
+                  language: { code: 'en' },
+                  components: [{
+                    type: 'body',
+                    parameters: [
+                      { type: 'text', text: deal.destination },
+                      { type: 'text', text: deal.origin_code },
+                      { type: 'text', text: `₹${deal.deal_price?.toLocaleString('en-IN')}` },
+                      { type: 'text', text: `${deal.savings_pct}%` },
+                      { type: 'text', text: deal.airline },
+                      { type: 'text', text: deal.cabin_class },
+                      { type: 'text', text: `https://yolofare.com/deals/${deal.id}` },
+                    ],
+                  }],
+                },
+              }),
+            }
+          )
+          const data = await res.json()
+          whatsappResults.push({ phone, success: res.ok, id: data?.messages?.[0]?.id })
         } catch (err) {
-          whatsappResults.push({ phone: sub.phone, success: false })
+          whatsappResults.push({ phone, success: false, error: err.message })
         }
       }
     }

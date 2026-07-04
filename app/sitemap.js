@@ -19,7 +19,10 @@ export default async function sitemap() {
   ]
 
   // Competitor comparison pages
-  const competitors = ['zomunk', 'happyfares', 'wowfare', 'sastafare']
+  const competitors = [
+    'zomunk', 'happyfares', 'wowfare', 'sastafare',
+    'makemytrip', 'skyscanner', 'google-flights', 'cleartrip', 'ixigo', 'easemytrip', 'kayak',
+  ]
   const vsPages = competitors.map(c => ({
     url: `${base}/vs/${c}`,
     lastModified: now,

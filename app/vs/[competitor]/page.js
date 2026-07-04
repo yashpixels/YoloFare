@@ -1,6 +1,125 @@
 import Link from 'next/link'
 
 const COMPETITORS = {
+  makemytrip: {
+    name: 'MakeMyTrip',
+    tagline: 'YoloFare vs MakeMyTrip — Why an OTA Is Not a Deal Intelligence Service',
+    description: 'MakeMyTrip books flights and earns commissions doing it. YoloFare finds the genuinely cheapest fares and alerts you instantly — zero service fees, zero OTA markup, zero incentive to upsell you.',
+    metaDesc: 'YoloFare vs MakeMyTrip: Why a deal alert service beats an OTA for cheap international flights from India. No convenience fees, no markup, real WhatsApp alerts.',
+    blurb: 'MakeMyTrip is India\'s largest OTA — a booking platform, not a deal intelligence service. When you book through MMT, you pay a convenience fee on top of the base fare, and MMT earns airline commissions. They\'re financially incentivised to fill seats profitably, not to surface the absolute cheapest fare. Their "deals" page is largely partner-sponsored promotions — not curated market lows. And if a flash sale drops a fare by 60% for 3 hours, you won\'t hear about it until the next morning\'s email.',
+    theirWeaks: [
+      'Charges ₹150–400+ convenience fee per international booking',
+      'Earns airline and OTA commissions — financially motivated away from cheapest fares',
+      '"Deals" are largely partner-sponsored promotions, not market lows',
+      'No real-time WhatsApp alerts — time-sensitive fares disappear before you see them',
+      'Cluttered UI with upsells: insurance, hotel add-ons, seat upgrades',
+      'No human curation — deals are algorithmic promotions, not hand-picked savings',
+      'Doesn\'t surface error fares or flash sales that vanish in hours',
+      'Premium cabin "deals" are heavily marked up Business Class fares, not genuine savings',
+    ],
+  },
+  skyscanner: {
+    name: 'Skyscanner',
+    tagline: 'YoloFare vs Skyscanner — The Difference Between Searching and Discovering',
+    description: 'Skyscanner shows you every flight. YoloFare shows you the ones that are actually a steal — hand-curated deals 40%+ below average, with instant WhatsApp alerts before they disappear.',
+    metaDesc: 'YoloFare vs Skyscanner for Indian travellers. Skyscanner searches, YoloFare curates. See why deal intelligence beats a search engine for saving money on flights.',
+    blurb: 'Skyscanner is an exceptional flight search engine — but it\'s a search engine, not a deal intelligence service. It surfaces every fare in the market and lets you compare them. What it can\'t do is tell you "this fare is 55% cheaper than usual and will be gone in 6 hours — book now." That editorial layer, the human judgment of what\'s genuinely worth your time, is what YoloFare provides. Skyscanner also redirects you to OTAs for booking, where convenience fees get added back into the price.',
+    theirWeaks: [
+      'A search tool, not a curation service — no "this is a genuine deal" intelligence layer',
+      'Redirects to OTAs for booking, where service fees are added',
+      'Price alerts are email-based — not instant enough for time-sensitive fares',
+      'No WhatsApp notifications for flash sales or error fares',
+      'Overwhelming results — thousands of options with no guidance on what\'s actually worth it',
+      'No coverage of Business or First Class deals specifically',
+      'Not optimised for Indian departure cities and Indian traveller preferences',
+      'Misses error fares that are manually spotted and last only hours',
+    ],
+  },
+  'google-flights': {
+    name: 'Google Flights',
+    tagline: 'YoloFare vs Google Flights — Great for Searching, Not for Deal Discovery',
+    description: 'Google Flights is the best flight search tool in the world. But it\'s a search tool. YoloFare is a deal intelligence service — we tell you when a fare is a genuine steal and alert you on WhatsApp before it\'s gone.',
+    metaDesc: 'YoloFare vs Google Flights: Why you need both. Google Flights searches fares; YoloFare tells you which ones are genuinely cheap. Real-time WhatsApp alerts for Indian travellers.',
+    blurb: 'Google Flights is arguably the world\'s best flight search interface — the price calendar, flexible date search, and price graph are genuinely excellent. But Google Flights is a neutral search engine. It shows you all fares without editorial judgment on what\'s a steal. It doesn\'t know that a particular London fare is 58% below its 3-year average, or that it will last only 4 hours before the airline corrects it. YoloFare provides exactly that layer: human curation, context, and instant WhatsApp alerts so you can act before the fare disappears.',
+    theirWeaks: [
+      'A search engine — shows all fares with no editorial "this is a deal" layer',
+      'No alert system that can match the urgency of time-sensitive fares',
+      'Price tracking emails often arrive after the cheapest fares are gone',
+      'No WhatsApp alerts for instant notification',
+      'Redirects to airlines and OTAs for booking — no seamless booking with deal context',
+      'No Business or First Class deal curation',
+      'Global tool with no specific focus on Indian departure city deals',
+      'Misses hand-spotted error fares that exist only for hours',
+    ],
+  },
+  cleartrip: {
+    name: 'Cleartrip',
+    tagline: 'YoloFare vs Cleartrip — Booking Platform vs Deal Intelligence',
+    description: 'Cleartrip books flights and takes a cut. YoloFare finds the market\'s cheapest fares without adding fees or commissions — just clean deal alerts straight to your WhatsApp.',
+    metaDesc: 'YoloFare vs Cleartrip for international flights from India. Why a no-middleman deal alert service beats an OTA. No service fees, no markup, instant WhatsApp alerts.',
+    blurb: 'Cleartrip is a clean, well-designed OTA — but it\'s still an OTA. It earns from convenience fees and airline commissions, and its "deals" are driven by airline partnerships rather than independent fare monitoring. Cleartrip does what all OTAs do: it adds a layer between you and the cheapest fare. YoloFare removes that layer entirely. We monitor fares independently, earn from subscriptions (not bookings), and have no financial reason to steer you toward a pricier option.',
+    theirWeaks: [
+      'OTA model with convenience fees layered on top of base fares',
+      'Earns airline commissions — not financially neutral when surfacing "deals"',
+      'Deal promotions are largely airline-partnership driven, not independently curated',
+      'No real-time WhatsApp alerts for time-sensitive fares',
+      'No Business or First Class deal curation',
+      'You must actively check the app — no proactive deal discovery',
+      'No human curation layer for error fares or flash sales',
+      'International flight focus is secondary to domestic in their deal coverage',
+    ],
+  },
+  ixigo: {
+    name: 'Ixigo',
+    tagline: 'YoloFare vs Ixigo — Beyond Price Comparison to Real Deal Intelligence',
+    description: 'Ixigo compares prices and earns from bookings. YoloFare operates differently — subscription-funded, human-curated deals with instant WhatsApp alerts and zero booking commissions in our pricing.',
+    metaDesc: 'YoloFare vs Ixigo for cheap international flights from India. No convenience fees, no ad clutter, WhatsApp alerts — see the difference between an aggregator and a deal service.',
+    blurb: 'Ixigo is a popular Indian travel aggregator with a strong domestic focus, useful price tracking, and a large user base. But Ixigo is built around the aggregator-OTA model: it earns when you book through its platform, which means its deal recommendations are filtered through a commercial lens. The interface is ad-heavy, the "deals" page mixes genuine fares with sponsored listings, and international deal coverage is limited compared to a dedicated international deal service.',
+    theirWeaks: [
+      'Aggregator model with booking commissions embedded in recommendations',
+      'Ad-heavy interface — sponsored listings mixed in with organic fares',
+      'Strong on domestic flights, limited focus on international deal curation',
+      'No WhatsApp alerts — relies on app notifications and email',
+      'No Business or First Class international deal coverage',
+      'No human editorial layer — purely algorithmic deal surfacing',
+      'Doesn\'t cover error fares or manually spotted flash sales',
+      'Convenience fees added on OTA-redirected bookings',
+    ],
+  },
+  easemytrip: {
+    name: 'EaseMyTrip',
+    tagline: 'YoloFare vs EaseMyTrip — The Real Cost of "No Convenience Fee"',
+    description: 'EaseMyTrip made headlines for no convenience fees — but it\'s still an OTA earning airline commissions. YoloFare earns from subscriptions, not bookings, giving you genuinely unbiased deal intelligence.',
+    metaDesc: 'YoloFare vs EaseMyTrip for international flights from India. Beyond the no-fee headline — why a subscription deal service gives you better fares and instant WhatsApp alerts.',
+    blurb: 'EaseMyTrip built its brand around the "no convenience fee" positioning — a genuine differentiator in the Indian OTA market. But removing the convenience fee doesn\'t remove the fundamental OTA dynamic: EaseMyTrip still earns airline GDS commissions, incentive payouts, and promotional fees. Its "deal" promotions are typically airline-partnership campaigns. And critically, it\'s a booking platform — not a service that proactively hunts for the cheapest fares in the market and pushes them to you the moment they appear.',
+    theirWeaks: [
+      'Still earns airline GDS commissions and incentives — not truly commission-free',
+      '"Deals" are airline-partnership promotions, not independent fare monitoring',
+      'No proactive deal discovery — you have to search, not be alerted',
+      'No WhatsApp alerts for instant notification of time-sensitive fares',
+      'No Business or First Class deal curation',
+      'International deal coverage is secondary to domestic focus',
+      'No human curation — misses error fares and manually spotted flash sales',
+      'Booking interface adds friction vs. going direct to the airline',
+    ],
+  },
+  kayak: {
+    name: 'Kayak',
+    tagline: 'YoloFare vs Kayak — Why a US-Built Aggregator Misses India-Specific Deals',
+    description: 'Kayak searches global fares and redirects to OTAs. YoloFare is built specifically for Indian travellers — curating deals from Delhi, Mumbai, Bangalore, Hyderabad and Chennai with WhatsApp alerts.',
+    metaDesc: 'YoloFare vs Kayak for Indian travellers. Why a global aggregator misses India-specific deals — and why real-time WhatsApp alerts beat OTA redirect price comparison.',
+    blurb: 'Kayak is one of the world\'s leading flight search aggregators — powerful, fast, and feature-rich. But it\'s built for a global audience, primarily the US and European markets. India-specific fare patterns, the best departure city combinations, deals on routes that Indian travellers love (Thailand, UAE, UK, Bali, Japan), and the nuances of Indian airline pricing are not Kayak\'s core competency. And like Skyscanner, Kayak is a search tool — it surfaces fares but doesn\'t curate them. There\'s no "this is 50% below average — book today" intelligence layer.',
+    theirWeaks: [
+      'Built for global (primarily US/European) travellers — not optimised for Indian departures',
+      'A search/comparison tool, not a deal curation service',
+      'Redirects to OTAs for booking — convenience fees added downstream',
+      'Price alerts are email-based, not instant WhatsApp notifications',
+      'No Business or First Class deal curation for Indian routes',
+      'No editorial layer to identify genuine steals vs. normal fares',
+      'Misses India-specific error fares and flash sales on Indian routes',
+      'Limited insight into Indian departure city-specific fare patterns',
+    ],
+  },
   zomunk: {
     name: 'Zomunk',
     tagline: 'YoloFare vs Zomunk — Which Flight Deal Service Is Actually Worth It?',
@@ -62,6 +181,7 @@ const COMPETITORS = {
 export async function generateStaticParams() {
   return Object.keys(COMPETITORS).map(c => ({ competitor: c }))
 }
+
 
 export async function generateMetadata({ params }) {
   const { competitor } = await params
