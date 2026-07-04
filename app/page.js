@@ -33,7 +33,7 @@ export default function Home() {
   // CHANGE 1: Added img URLs and fixed flag emojis
   const sampleDeals = [
     { from: 'DEL', dest: 'Singapore', flag: '🇸🇬', price: 14200, was: 38000, off: 63, airline: 'IndiGo', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&q=80' },
-    { from: 'BOM', dest: 'Bangkok', flag: '🇹🇭', price: 11800, was: 29000, off: 59, airline: 'Air Asia', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5?w=600&q=80' },
+    { from: 'BOM', dest: 'Bangkok', flag: '🇹🇭', price: 11800, was: 29000, off: 59, airline: 'Air Asia', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600&q=80' },
     { from: 'BLR', dest: 'London', flag: '🇬🇧', price: 42500, was: 98000, off: 57, airline: 'Air India', type: 'Business', stops: 1, img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80' },
     { from: 'DEL', dest: 'Tokyo', flag: '🇯🇵', price: 28900, was: 72000, off: 60, airline: 'Vistara', type: 'Economy', stops: 1, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80' },
     { from: 'HYD', dest: 'Dubai', flag: '🇦🇪', price: 9400, was: 24000, off: 61, airline: 'IndiGo', type: 'Economy', stops: 0, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80' },
