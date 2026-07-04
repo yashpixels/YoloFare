@@ -164,6 +164,17 @@ export default function DealPage({ params }) {
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="white"/>
+          </svg>
+          Book on Google Flights →
+        </a>
+
+        <Link href="/deals" style={{ display: 'block', textAlign: 'center', fontSize: 14, color: 'rgba(255,245,236,0.4)', textDecoration: 'none' }}>
+          ← Back to all deals
+        </Link>
+      </div>
+    </div>
+  )
+}fill="white"/>
             </svg>
             Book on Google Flights →
           </a>
@@ -248,4 +259,15 @@ export default function DealPage({ params }) {
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', background: '#FF5C3A', color: 'white', padding: '18px 28px', borderRadius: 100, fontSize: 17, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif", boxSizing: 'border-box', textAlign: 'center', marginBottom: 16 }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" 
+            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="white"/>
+          </svg>
+          Book on Google Flights →
+        </a>
+
+        <Link href="/deals" style={{ display: 'block', textAlign: 'center', fontSize: 14, color: 'rgba(255,245,236,0.4)', textDecoration: 'none' }}>
+          ← Back to all deals
+        </Link>
+      </div>
+    </div>
+  )
+}
