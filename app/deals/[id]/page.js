@@ -401,7 +401,7 @@ export default function DealPage({ params }) {
               >
                 Upgrade to Pro →
               </Link>
-              <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.3)', marginTop: 12 }}>₹299/month · Cancel anytime</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.3)', marginTop: 12 }}>₹999/month · Cancel anytime</div>
             </div>
           </div>
         )}
