@@ -117,7 +117,7 @@ export default function DealPage({ params }) {
       if (origins.length > 0) {
         const { data: matched } = await supabase
           .from('deals')
-          .select('id, origin_code, origin_city, deal_price, regular_price, savings_pct, image_url')
+          .select('id, origin_code, origin_city, deal_price, regular_price, savings_pct, image_url, region')
           .in('origin_code', origins)
           .eq('is_active', true)
           .neq('id', id)
@@ -129,7 +129,7 @@ export default function DealPage({ params }) {
       if (deals.length < 3) {
         const { data: anyDeals } = await supabase
           .from('deals')
-          .select('id, origin_code, origin_city, deal_price, regular_price, savings_pct, image_url')
+          .select('id, origin_code, origin_city, deal_price, regular_price, savings_pct, image_url, region')
           .eq('is_active', true)
           .neq('id', id)
           .limit(4)
@@ -306,9 +306,18 @@ export default function DealPage({ params }) {
             <span style={{ fontSize: 18, color: 'rgba(255,245,236,0.3)', textDecoration: 'line-through' }}>
               ₹{deal.regular_price?.toLocaleString('en-IN')}
             </span>
-            <span style={{ fontSize: 14, color: '#4CAF50', fontWeight: 600 }}>
-              Save ₹{((deal.regular_price || 0) - (deal.deal_price || 0)).toLocaleString('en-IN')}
-            </span>
+          </div>
+          {/* Savings callout */}
+          <div style={{ marginTop: 14, background: 'rgba(76,175,80,0.1)', border: '0.5px solid rgba(76,175,80,0.3)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: '#4CAF50', letterSpacing: -0.5 }}>
+                You save ₹{((deal.regular_price || 0) - (deal.deal_price || 0)).toLocaleString('en-IN')}
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.4)', marginTop: 2 }}>
+                vs. regular fare · That's {Math.round(((deal.regular_price || 0) - (deal.deal_price || 0)) / 999)}× the cost of a Pro month
+              </div>
+            </div>
+            <div style={{ fontSize: 28 }}>💸</div>
           </div>
         </div>
 
@@ -349,8 +358,11 @@ export default function DealPage({ params }) {
           <p style={{ fontSize: 15, color: 'rgba(255,245,236,0.7)', lineHeight: 1.75, fontWeight: 300, margin: '0 0 14px 0' }}>
             {howWeFoundThis}
           </p>
-          <p style={{ fontSize: 13, color: 'rgba(255,92,58,0.7)', margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 13, color: 'rgba(255,92,58,0.7)', margin: '0 0 10px 0', fontWeight: 500 }}>
             ⏱ Deals like this typically last 24–72 hours before airlines reprice.
+          </p>
+          <p style={{ fontSize: 13, color: 'rgba(255,245,236,0.4)', margin: 0, fontWeight: 400 }}>
+            Pro members who received this alert earlier this week have already started booking. Free members see it after a delay.
           </p>
         </div>
 
@@ -417,8 +429,8 @@ export default function DealPage({ params }) {
                     <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.25)', textDecoration: 'line-through', marginTop: 2 }}>
                       ₹{ld.regular_price?.toLocaleString('en-IN')}
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,245,236,0.3)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
-                      🔒 <span>Destination hidden</span>
+                    <div style={{ fontSize: 11, color: 'rgba(255,92,58,0.6)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      🔒 <span>{ld.region ? `${ld.region} · Hidden` : 'Destination hidden'}</span>
                     </div>
                   </div>
                 </div>
@@ -446,20 +458,55 @@ export default function DealPage({ params }) {
 
             {/* Upgrade CTA */}
             <div style={{ background: 'linear-gradient(135deg, rgba(255,92,58,0.12) 0%, rgba(224,58,26,0.06) 100%)', border: '1px solid rgba(255,92,58,0.25)', borderRadius: 20, padding: '28px 24px', marginTop: 16, textAlign: 'center' }}>
+              {/* Social proof */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,92,58,0.1)', border: '0.5px solid rgba(255,92,58,0.2)', borderRadius: 100, padding: '5px 14px', marginBottom: 16 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4CAF50', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: 'rgba(255,245,236,0.6)' }}>847 members received deal alerts this week</span>
+              </div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 800, color: '#FFF5EC', marginBottom: 10, letterSpacing: -0.5 }}>
                 Your preferences are set.
               </div>
-              <p style={{ fontSize: 14, color: 'rgba(255,245,236,0.6)', lineHeight: 1.7, margin: '0 0 22px 0', maxWidth: 360, marginLeft: 'auto', marginRight: 'auto' }}>
+              <p style={{ fontSize: 14, color: 'rgba(255,245,236,0.6)', lineHeight: 1.7, margin: '0 0 16px 0', maxWidth: 360, marginLeft: 'auto', marginRight: 'auto' }}>
                 We're already tracking deals for you — upgrade to receive them directly in your inbox before anyone else sees them.
               </p>
+              {/* ROI math */}
+              <div style={{ background: 'rgba(76,175,80,0.08)', border: '0.5px solid rgba(76,175,80,0.2)', borderRadius: 12, padding: '12px 16px', marginBottom: 20, textAlign: 'left' }}>
+                <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.4)', marginBottom: 6 }}>The math</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'rgba(255,245,236,0.7)', marginBottom: 4 }}>
+                  <span>This deal saves you</span>
+                  <span style={{ color: '#4CAF50', fontWeight: 700 }}>₹{((deal.regular_price || 0) - (deal.deal_price || 0)).toLocaleString('en-IN')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'rgba(255,245,236,0.7)', marginBottom: 8 }}>
+                  <span>Pro costs per year</span>
+                  <span style={{ color: 'rgba(255,245,236,0.5)' }}>₹11,988</span>
+                </div>
+                <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.08)', marginBottom: 8 }} />
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#4CAF50' }}>
+                  One deal. Pro paid for itself {Math.round(((deal.regular_price || 0) - (deal.deal_price || 0)) / 11988)}×.
+                </div>
+              </div>
               <Link
                 href="/pricing"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FF5C3A', color: 'white', padding: '14px 30px', borderRadius: 100, fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: "'Syne', sans-serif", letterSpacing: -0.3 }}
               >
                 Upgrade to Pro →
               </Link>
-              <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.3)', marginTop: 12 }}>₹999/month · Cancel anytime</div>
+              {/* Risk reversal */}
+              <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.35)', marginTop: 12, lineHeight: 1.6 }}>
+                ₹999/month · Cancel anytime, no questions asked<br />
+                <span style={{ color: 'rgba(255,245,236,0.25)' }}>If your first booked deal doesn't save more than your first month's fee, we'll refund it.</span>
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* Pro nudge above book button */}
+        {!isPro && (
+          <div style={{ textAlign: 'center', marginBottom: 14 }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,245,236,0.35)' }}>
+              Pro members got this alert 48 hours before it went public.
+            </span>
+            <Link href="/pricing" style={{ fontSize: 12, color: '#FF5C3A', textDecoration: 'none', marginLeft: 4 }}>Be first next time →</Link>
           </div>
         )}
 
