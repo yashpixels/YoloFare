@@ -233,9 +233,11 @@ export default function DealPage({ params }) {
           </span>
         </div>
 
-        {/* Route display */}
-        <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 20, marginBottom: 16 }}>
-          <div className="route-row">
+        {/* Route display — both legs */}
+        <div style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 20, marginBottom: 16, overflow: 'hidden' }}>
+          {/* Outbound */}
+          <div style={{ padding: '6px 24px 4px', fontSize: 10, color: 'rgba(255,245,236,0.3)', letterSpacing: 1.5, textTransform: 'uppercase' }}>Departure</div>
+          <div className="route-row" style={{ paddingTop: 12, paddingBottom: 16 }}>
             <div style={{ textAlign: 'center' }}>
               <div className="route-code">{deal.origin_code}</div>
               <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.4)', marginTop: 4 }}>{deal.origin_city || deal.origin_code}</div>
@@ -254,6 +256,33 @@ export default function DealPage({ params }) {
             <div style={{ textAlign: 'center' }}>
               <div className="route-code">{deal.dest_code}</div>
               <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.4)', marginTop: 4 }}>{deal.destination}</div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.08)', margin: '0 24px' }} />
+
+          {/* Return */}
+          <div style={{ padding: '12px 24px 4px', fontSize: 10, color: 'rgba(255,245,236,0.3)', letterSpacing: 1.5, textTransform: 'uppercase' }}>Return</div>
+          <div className="route-row" style={{ paddingTop: 12, paddingBottom: 20 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div className="route-code">{deal.dest_code}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.4)', marginTop: 4 }}>{deal.destination}</div>
+            </div>
+            <div className="route-mid" style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.15)' }} />
+                <span style={{ fontSize: 18 }}>✈️</span>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.15)' }} />
+              </div>
+              <span style={{ fontSize: 11, color: 'rgba(255,245,236,0.35)', textAlign: 'center' }}>
+                {deal.stops === 0 ? 'Non-stop' : `${deal.stops} stop`}
+              </span>
+              <span style={{ fontSize: 11, color: 'rgba(255,245,236,0.35)', textAlign: 'center' }}>{deal.airline}</span>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div className="route-code">{deal.origin_code}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.4)', marginTop: 4 }}>{deal.origin_city || deal.origin_code}</div>
             </div>
           </div>
         </div>
