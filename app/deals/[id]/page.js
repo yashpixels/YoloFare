@@ -41,6 +41,7 @@ export default function DealPage({ params }) {
   const [id, setId] = useState(null)
   const [isPro, setIsPro] = useState(false)
   const [lockedDeals, setLockedDeals] = useState([])
+  const [totalDealsCount, setTotalDealsCount] = useState(0)
   const [testimonialIdx, setTestimonialIdx] = useState(0)
   const [testimonialVisible, setTestimonialVisible] = useState(true)
   const router = useRouter()
@@ -136,6 +137,14 @@ export default function DealPage({ params }) {
       }
 
       setLockedDeals(deals.slice(0, 4))
+
+      // Get total active deal count for "X more" tile
+      const { count } = await supabase
+        .from('deals')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .neq('id', id)
+      setTotalDealsCount(count || 0)
     }
   }
 
@@ -415,6 +424,25 @@ export default function DealPage({ params }) {
                 </div>
               ))}
             </div>
+
+            {/* "X more deals" tile */}
+            {totalDealsCount - lockedDeals.length > 0 && (
+              <div style={{ marginTop: 10, background: 'rgba(255,92,58,0.06)', border: '0.5px dashed rgba(255,92,58,0.3)', borderRadius: 16, padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, fontWeight: 800, color: '#FF5C3A', letterSpacing: -0.3 }}>
+                    +{totalDealsCount - lockedDeals.length} more deals
+                  </div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,245,236,0.4)', marginTop: 3 }}>
+                    Available instantly with Pro
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{ width: 36 - i * 6, height: 6, borderRadius: 3, background: `rgba(255,92,58,${0.5 - i * 0.12})` }} />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Upgrade CTA */}
             <div style={{ background: 'linear-gradient(135deg, rgba(255,92,58,0.12) 0%, rgba(224,58,26,0.06) 100%)', border: '1px solid rgba(255,92,58,0.25)', borderRadius: 20, padding: '28px 24px', marginTop: 16, textAlign: 'center' }}>
