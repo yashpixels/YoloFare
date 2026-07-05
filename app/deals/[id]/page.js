@@ -113,23 +113,27 @@ export default function DealPage({ params }) {
       const origins = prefs?.preferred_origins || []
       let deals = []
 
-      // Try to match deals to user's home airports first
+      const premiumRegions = ['Europe', 'Oceania', 'North America', 'Middle East']
+
+      // Try to match deals to user's home airports first, excluding Southeast Asia
       if (origins.length > 0) {
         const { data: matched } = await supabase
           .from('deals')
           .select('id, origin_code, origin_city, deal_price, regular_price, savings_pct, image_url, region')
           .in('origin_code', origins)
+          .in('region', premiumRegions)
           .eq('is_active', true)
           .neq('id', id)
           .limit(4)
         deals = matched || []
       }
 
-      // Top up with any active deals if not enough from preferred origins
+      // Top up from premium regions if not enough
       if (deals.length < 3) {
         const { data: anyDeals } = await supabase
           .from('deals')
           .select('id, origin_code, origin_city, deal_price, regular_price, savings_pct, image_url, region')
+          .in('region', premiumRegions)
           .eq('is_active', true)
           .neq('id', id)
           .limit(4)
@@ -477,12 +481,12 @@ export default function DealPage({ params }) {
                   <span style={{ color: '#4CAF50', fontWeight: 700 }}>₹{((deal.regular_price || 0) - (deal.deal_price || 0)).toLocaleString('en-IN')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'rgba(255,245,236,0.7)', marginBottom: 8 }}>
-                  <span>Pro costs per year</span>
-                  <span style={{ color: 'rgba(255,245,236,0.5)' }}>₹11,988</span>
+                  <span>Pro costs</span>
+                  <span style={{ color: 'rgba(255,245,236,0.5)' }}>₹999/month</span>
                 </div>
                 <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.08)', marginBottom: 8 }} />
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#4CAF50' }}>
-                  One deal. Pro paid for itself {Math.round(((deal.regular_price || 0) - (deal.deal_price || 0)) / 11988)}×.
+                  This one deal covers {Math.round(((deal.regular_price || 0) - (deal.deal_price || 0)) / 999)} months of Pro.
                 </div>
               </div>
               <Link
